@@ -103,6 +103,7 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
             val linkDoesNotExists = the[LinkDoesNotExists] thrownBy links.linkByCode(otherUserToken, link.code)
             linkDoesNotExists.code should be(link.code)
           }
+          //TODO:  Generalize this
           "should paginate by token" in {
             val (token, userId) = tokensToUserId.last
             val checkedList: ListBuffer[Link] = userIdToLinks(userId)
