@@ -72,7 +72,7 @@ trait SlickDbConnectorComponent {
 
 case class Paging(offset: Int, limit: Option[Int] = None)
 
-class PagingResult[E](count: Int, data: List[E])
+case class PagingResult[E](count: Int, data: List[E])
 
 trait QueryExtensions {
   this: DbConnectorComponent =>
@@ -93,7 +93,7 @@ trait QueryExtensions {
 
       def withPaging(pagingOption: Option[Paging])(implicit session: Session) = {
         val query = pagingOption.map(paginate(_)).getOrElse(q)
-        new PagingResult(q.rowsCount.run, query.list)
+        new PagingResult[E#TableElementType](q.rowsCount.run, query.list)
       }
     }
   }

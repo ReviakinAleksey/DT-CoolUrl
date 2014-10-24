@@ -62,14 +62,15 @@ trait LinksComponent {
       }
     }
 
-    def linkByCode(code: String)(implicit session: Session): Option[Link] = this.filter(_.code === code).firstOption
+    def linkByCode(token: UserToken, code: String)(implicit session: Session): Link =
+      this.filter(_.code === code).filter(_.token === token).firstOption.getOrElse(throw LinkDoesNotExists(code))
 
-    def linksByToken(token: UserToken, paging: Option[Paging])(implicit session: Session) = {
+    def linksByToken(token: UserToken, paging: Option[Paging] = None)(implicit session: Session) = {
       this.filter(_.token === token).withPaging(paging)
     }
 
 
-    def linksByFolderQuery(folderId: Long, paging: Option[Paging])(implicit session: Session) = {
+    def linksByFolderQuery(folderId: Long, paging: Option[Paging] = None)(implicit session: Session) = {
       this.filter(_.folderId === folderId).withPaging(paging)
     }
 

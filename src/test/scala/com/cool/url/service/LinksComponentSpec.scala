@@ -74,11 +74,57 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
           }
           "fail to create link with previously used code" in {
             val token = tokensToUserId.keys.headOption.get
-            val code  = codeToLink.keys.head
+            val code = codeToLink.keys.head
             val codeOccupied = the[LinkCodeIsAlreadyOccupied] thrownBy {
               links.create(token, "http://google.com", Some(code), None)
             }
             codeOccupied.code should be(code)
+          }
+          "return list of links by token" in {
+            tokensToUserId.foreach({ case (token, userId) =>
+              val userLinks: PagingResult[Link] = links.linksByToken(token)
+              val checkedList: ListBuffer[Link] = userIdToLinks(userId)
+              userLinks.count should be(checkedList.length)
+              userLinks.data.length should be(checkedList.length)
+              userLinks.data should contain only (checkedList: _*)
+            })
+          }
+          "return link fow correct code and token" in {
+            userIdToLinks.foreach({ case (userId, checkedLinks) =>
+              checkedLinks.foreach(checkedLink => {
+                links.linkByCode(checkedLink.token, checkedLink.code) should be(checkedLink)
+              })
+            })
+          }
+          "fail to return link for token of different user" in {
+            val token = tokensToUserId.keys.head
+            val link = links.create(token, s"http://google.com/private", None, None)
+            val otherUserToken = tokensToUserId.keys.filterNot(_ == token).head
+            val linkDoesNotExists = the[LinkDoesNotExists] thrownBy links.linkByCode(otherUserToken, link.code)
+            linkDoesNotExists.code should be(link.code)
+          }
+          "should paginate by token" in {
+            val (token, userId) = tokensToUserId.last
+            val checkedList: ListBuffer[Link] = userIdToLinks(userId)
+            val checkedLength: Int = checkedList.length
+            for (limit <- 0 to checkedLength) {
+              val paginated: PagingResult[Link] = links.linksByToken(token, Some(Paging(0, Some(limit))))
+              paginated.count should be(checkedLength)
+              val receivedLinks: List[Link] = paginated.data
+              receivedLinks.length should be(limit)
+              receivedLinks.foreach(checkedList.contains(_) should be(true))
+            }
+            for (offset <- 0 to checkedLength) {
+              val paginated: PagingResult[Link] = links.linksByToken(token, Some(Paging(offset, Some(checkedLength))))
+              paginated.count should be(checkedLength)
+              val receivedLinks: List[Link] = paginated.data
+              receivedLinks.length should be(checkedLength - offset)
+              receivedLinks.foreach(checkedList.contains(_) should be(true))
+            }
+            val emptyPagination: PagingResult[Link] = links.linksByToken(token, Some(Paging(checkedLength)))
+            emptyPagination.count should be(checkedLength)
+            val receivedLinks: List[Link] = emptyPagination.data
+            receivedLinks.length should be(0)
           }
         }
       }

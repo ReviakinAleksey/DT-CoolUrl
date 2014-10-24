@@ -8,3 +8,5 @@ case class UserTokenUnknown(token: String) extends ValidationException
 case class FolderIsNotExists(folderId: Long) extends ValidationException
 
 case class LinkCodeIsAlreadyOccupied(code: String) extends ValidationException
+
+case class LinkDoesNotExists(code: String) extends ValidationException

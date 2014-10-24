@@ -20,7 +20,7 @@ class MainSpec extends BaseSpec with BeforeAndAfterAll {
       try {
         val stm = connection.createStatement()
         stm.execute(s"DROP SCHEMA IF EXISTS ${schemaName} CASCADE")
-        stm.execute(s"CREATE SCHEMA  ${schemaName}")
+        stm.execute(s"CREATE SCHEMA ${schemaName}")
         stm.close()
       } finally {
         connection.close()
