@@ -1,6 +1,7 @@
 package com.cool.url.service
 
 
+import scala.slick.lifted
 import scala.slick.lifted.ProvenShape
 
 
@@ -8,6 +9,7 @@ trait LinksComponent {
   this: DbConnectorComponent
     with QueryExtensions
     with UsersComponent
+    with ClicksComponent
     with FoldersComponent =>
 
   import connector.driver.simple._
@@ -39,6 +41,8 @@ trait LinksComponent {
 
 
   object links extends TableQuery(new Links(_)) with PaginationExtension[Links] {
+
+    type QueryLocal = Query[Links, Links#TableElementType, Seq]
 
     def create(token: UserToken, url: String, code: Option[String], folderId: Option[Long])(implicit session: Session): Link = {
       try {
@@ -72,6 +76,13 @@ trait LinksComponent {
 
     def linksByFolderQuery(folderId: Long, paging: Option[Paging] = None)(implicit session: Session) = {
       this.filter(_.folderId === folderId).withPaging(paging)
+    }
+
+  //TODO: Test & Generalize
+    def linkAndClicksCountByCode(token: UserToken, code: String)(implicit session: Session):(Link, Int) = {
+      this.filter(_.code === code).filter(_.token === token).leftJoin(clicks.map(cl => (cl.linkCode, cl.linkCode.length))).on(_.code === _._1).map({
+         case (link, (code, count)) => (link, count)
+       }).firstOption.getOrElse(throw LinkDoesNotExists(code))
     }
 
 
