@@ -18,6 +18,7 @@ object BuildSettings {
 
 object Dependencies {
   val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.0.0"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.1.2"
   val slick = "com.typesafe.slick" %% "slick" % "2.1.0"
   val c3p0 = "com.mchange" % "c3p0" % "0.9.2.1"
   val unfilteredNetty = "net.databinder" %% "unfiltered-netty-server" % "0.8.2"
@@ -32,6 +33,7 @@ object CoolUrl extends Build {
 
 
   val commonDeps = Seq(
+    logback,
     logging,
     slick,
     c3p0,
