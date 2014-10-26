@@ -28,7 +28,7 @@ trait LinksComponent {
 
     def url = column[String]("url")
 
-    def folderId = column[Option[Long]]("id_folder")
+    def folderId = column[Option[FolderId]]("id_folder")
 
     override def * : ProvenShape[Link] = (code, token, url, folderId) <>(Link.tupled, Link.unapply)
 
@@ -44,7 +44,7 @@ trait LinksComponent {
 
     type QueryLocal = Query[Links, Links#TableElementType, Seq]
 
-    def create(token: UserToken, url: String, code: Option[String], folderId: Option[Long])(implicit session: Session): Link = {
+    def create(token: UserToken, url: String, code: Option[String], folderId: Option[FolderId])(implicit session: Session): Link = {
       try {
         val dbCode: String = code match {
           case Some(enteredCode) =>
@@ -74,7 +74,7 @@ trait LinksComponent {
     }
 
 
-    def linksByFolderQuery(folderId: Long, paging: Option[Paging] = None)(implicit session: Session) = {
+    def linksByFolderQuery(folderId: FolderId, paging: Option[Paging] = None)(implicit session: Session) = {
       this.filter(_.folderId === folderId).withPaging(paging)
     }
 
@@ -86,7 +86,7 @@ trait LinksComponent {
     }
 
 
-    def deleteAllByToken(token: String)(implicit session: Session): Int = {
+    def deleteByToken(token: UserToken)(implicit session: Session): Int = {
       this.filter(_.token === token).delete
     }
 

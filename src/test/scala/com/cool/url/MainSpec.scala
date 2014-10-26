@@ -1,7 +1,7 @@
 package com.cool.url
 
 import java.sql.Connection
-import com.cool.url.service.{LinksComponentSpec, UsersComponentSpec, TokenSpec}
+import com.cool.url.service._
 import org.scalatest.{Suite, BeforeAndAfterAll}
 import scala.collection.immutable.IndexedSeq
 
@@ -51,5 +51,8 @@ class MainSpec extends BaseSpec with BeforeAndAfterAll {
     super.afterAll()
   }
 
-  override def nestedSuites: IndexedSeq[Suite] = Vector(new TokenSpec, new UsersComponentSpec, new LinksComponentSpec)
+  override def nestedSuites: IndexedSeq[Suite] = Vector(new TokenSpec,
+    new UsersComponentSpec,
+    new LinksComponentSpec,
+    new ClicksComponentSpec)
 }

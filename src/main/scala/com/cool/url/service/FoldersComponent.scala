@@ -9,10 +9,12 @@ trait FoldersComponent {
 
   import connector.driver.simple._
 
-  case class Folder(id: Long, token: UserToken, title: String)
+  type FolderId = Long
+
+  case class Folder(id: FolderId, token: UserToken, title: String)
 
   class Folders(tag: Tag) extends Table[Folder](tag, connector.schema, "folders") {
-    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    def id = column[FolderId]("id", O.PrimaryKey, O.AutoInc)
 
     def token = column[UserToken]("user_token")
 
@@ -26,6 +28,17 @@ trait FoldersComponent {
     def id_to_token_index = index("idx_folders_id_and_token" ,(id, token), unique = true)
   }
 
-  object folders extends TableQuery(new Folders(_))
+  object folders extends TableQuery(new Folders(_)){
+
+    def createForToken(token: UserToken, title: String)(implicit session:Session): Folder = {
+      val id = this.map(_.title).returning(this.map(_.id)).insert(title)
+      Folder(id, token, title)
+    }
+
+
+    def deleteByToken(token: UserToken)(implicit  session: Session) = {
+      this.filter(_.token === token).delete
+    }
+  }
 
 }

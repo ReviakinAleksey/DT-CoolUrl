@@ -12,6 +12,8 @@ trait ClicksComponent {
 
   import connector.driver.simple._
 
+  val LINK_CODE_CONSTRAINT: String = "fk_clicks_to_link"
+
   case class Click(linkCode: LinkCode, date: Timestamp, referer: String, remote_ip: String)
 
   class Clicks(tag: Tag) extends Table[Click](tag, connector.schema, "clicks") {
@@ -25,20 +27,30 @@ trait ClicksComponent {
 
     override def * : ProvenShape[Click] = (linkCode, date, referer, remote_ip) <>(Click.tupled, Click.unapply)
 
-    def link = foreignKey("fk_clicks_to_link", linkCode, links)(_.code, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def link = foreignKey(LINK_CODE_CONSTRAINT, linkCode, links)(_.code, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
     def linkCodeIndex = index("link_code_index", linkCode)
   }
 
   object clicks extends TableQuery(new Clicks(_)) with PaginationExtension[Clicks] {
+
     def addClickForCode(code: LinkCode, date: Timestamp, referer: String, remote_ip: String)(implicit session: Session): Click = {
-      val click = Click(code, date,referer, remote_ip)
-      this += click
-      click
+      try {
+        val click = Click(code, date, referer, remote_ip)
+        this += click
+        click
+      } catch {
+        case connector.UNIQUE_VIOLATION(LINK_CODE_CONSTRAINT) =>
+          throw LinkDoesNotExists(code)
+      }
     }
 
-    def linksForCode(code:LinkCode, paging:Option[Paging] = None)(implicit session: Session):PagingResult[Click] = {
-        this.filter(_.linkCode === code).withPaging(paging)
+    def linksForCode(code: LinkCode, paging: Option[Paging] = None)(implicit session: Session): PagingResult[Click] = {
+      this.filter(_.linkCode === code).withPaging(paging)
+    }
+
+    def deleteByCode(code: LinkCode)(implicit session: Session) = {
+      this.filter(_.linkCode === code).delete
     }
   }
 

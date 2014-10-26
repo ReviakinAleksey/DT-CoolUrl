@@ -16,8 +16,22 @@ trait LinksComponentFixture extends UsersComponentFixture {
   val codeToLink = collection.mutable.Map.empty[LinkCode, Link]
 
 
+  def createLinksWithAutoCodeForUsers(implicit session:Session): Iterable[Link] = {
+    tokensToUserId.zipWithIndex.flatMap({ case ((token, userId), index) =>
+      for {
+        i <- 0 to index
+        link = {
+          val link = links.create(token, s"http://google.com/$index/${i + 1}", None, None)
+          codeToLink += link.code -> link
+          userIdToLinks(userId) += link
+          link
+        }
+      } yield link
+    })
+  }
+
   override def clearData(implicit session: Session) = {
-    tokensToUserId.keys.foreach(links.deleteAllByToken(_)(session))
+    tokensToUserId.keys.foreach(links.deleteByToken(_))
     super.clearData(session)
   }
 
@@ -52,14 +66,7 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
             folderIsNotExists.folderId should be(folderId)
           }
           "allow to create links with auto generated tokens" in {
-            tokensToUserId.zipWithIndex.foreach({ case ((token, userId), index) =>
-              for (i <- 0 to index) {
-                val link = links.create(token, s"http://google.com/$index/${i + 1}", None, None)
-                codeToLink += link.code -> link
-                userIdToLinks(userId) += link
-                link.code.length should be > 0
-              }
-            })
+            createLinksWithAutoCodeForUsers.foreach(_.code.length should be > 0)
           }
           "allow to create links with predefined code" in {
             tokensToUserId.zipWithIndex.foreach({ case ((token, userId), index) =>
@@ -104,7 +111,7 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
             linkDoesNotExists.code should be(link.code)
           }
           //TODO:  Generalize this
-          "should paginate by token" in {
+          "paginate by token" in {
             val (token, userId) = tokensToUserId.last
             val checkedList: ListBuffer[Link] = userIdToLinks(userId)
             val checkedLength: Int = checkedList.length
