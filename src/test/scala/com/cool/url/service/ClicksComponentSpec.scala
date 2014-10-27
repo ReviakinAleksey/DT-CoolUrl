@@ -63,7 +63,24 @@ class ClicksComponentSpec extends BaseSpec with ClicksComponentFixture with Befo
             })
           }
         }
+        "links created" should {
+          "match previously created  clicks count with link binding" in {
+            tokensToUserId.foreach({
+              case (token, userId) =>
+                userIdToLinks(userId).foreach(link => {
+                  val (receivedLink, count) = links.linkAndClicksCountByCode(token, link.code)
+                  receivedLink should be(link)
+                  count should be(codeToClicks(link.code).length)
+                })
+            })
+          }
+        }
       }
     }
+  }
+
+  override protected def afterAll(): Unit = {
+    connector.db.withSession(clearData(_))
+    super.afterAll()
   }
 }

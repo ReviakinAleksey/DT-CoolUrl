@@ -78,11 +78,16 @@ trait LinksComponent {
       this.filter(_.folderId === folderId).withPaging(paging)
     }
 
-  //TODO: Test & Generalize
-    def linkAndClicksCountByCode(token: UserToken, code: String)(implicit session: Session):(Link, Int) = {
-      this.filter(_.code === code).filter(_.token === token).leftJoin(clicks.map(cl => (cl.linkCode, cl.linkCode.length))).on(_.code === _._1).map({
-         case (link, (code, count)) => (link, count)
-       }).firstOption.getOrElse(throw LinkDoesNotExists(code))
+    def linkAndClicksCountByCode(token: UserToken, code: String)(implicit session: Session): (Link, Int) = {
+      val query = for {
+        link <- this if link.token === token && link.code === code
+        count <- clicks.filter(_.linkCode === code).groupBy(_.linkCode).map({
+          case (linkCode, click) => click.length
+        })
+      } yield {
+        (link, count)
+      }
+      query.firstOption.getOrElse(throw LinkDoesNotExists(code))
     }
 
 
