@@ -1,7 +1,6 @@
 package com.cool.url.service
 
 
-import scala.slick.lifted
 import scala.slick.lifted.ProvenShape
 
 
@@ -44,7 +43,7 @@ trait LinksComponent {
 
     type QueryLocal = Query[Links, Links#TableElementType, Seq]
 
-    def create(token: UserToken, url: String, code: Option[String], folderId: Option[FolderId])(implicit session: Session): Link = {
+    def create(token: UserToken, url: String, code: Option[LinkCode], folderId: Option[FolderId])(implicit session: Session): Link = {
       try {
         val dbCode: String = code match {
           case Some(enteredCode) =>
@@ -56,9 +55,9 @@ trait LinksComponent {
       } catch {
         case connector.UNIQUE_VIOLATION(constraint) =>
           (constraint, folderId, code) match {
-            case (USER_CODE_CONSTRAINT, _, _) => throw UserTokenUnknown(token)
-            case (FOLDER_ID_CONSTRAINT, Some(folder), _) => throw FolderIsNotExists(folder)
-            case (_, _, Some(requestedCode)) => throw LinkCodeIsAlreadyOccupied(requestedCode)
+            case (USER_CODE_CONSTRAINT, _, _) => throw UserTokenUnknown(token, ValidationException.INTERNAL_ERROR)
+            case (FOLDER_ID_CONSTRAINT, Some(folder), _) => throw FolderIsNotExists(folder, ValidationException.INTERNAL_ERROR)
+            case (_, _, Some(requestedCode)) => throw LinkCodeIsAlreadyOccupied(requestedCode, ValidationException.INTERNAL_ERROR)
             case (_, _, None) =>
               //Race conditions, re-request new code
               create(token, url, code, folderId)
@@ -66,19 +65,22 @@ trait LinksComponent {
       }
     }
 
-    def linkByCode(token: UserToken, code: String)(implicit session: Session): Link =
-      this.filter(_.code === code).filter(_.token === token).firstOption.getOrElse(throw LinkDoesNotExists(code))
+    def linkByCode(code: LinkCode)(implicit session: Session): Link =
+      this.filter(_.code === code).firstOption.getOrElse(throw LinkDoesNotExists(code, ValidationException.NOT_FOUND))
+
+    def linkByCodeAndToken(token: UserToken, code: LinkCode)(implicit session: Session): Link =
+      this.filter(_.code === code).filter(_.token === token).firstOption.getOrElse(throw LinkDoesNotExists(code, ValidationException.INTERNAL_ERROR))
 
     def linksByToken(token: UserToken, paging: Option[Paging] = None)(implicit session: Session) = {
       this.filter(_.token === token).withPaging(paging)
     }
 
 
-    def linksByFolderQuery(folderId: FolderId, paging: Option[Paging] = None)(implicit session: Session) = {
+    def linksByFolder(folderId: FolderId, paging: Option[Paging] = None)(implicit session: Session) = {
       this.filter(_.folderId === folderId).withPaging(paging)
     }
 
-    def linkAndClicksCountByCode(token: UserToken, code: String)(implicit session: Session): (Link, Int) = {
+    def linkAndClicksCountByCode(token: UserToken, code: LinkCode)(implicit session: Session): (Link, Int) = {
       val query = for {
         link <- this if link.token === token && link.code === code
         count <- clicks.filter(_.linkCode === code).groupBy(_.linkCode).map({
@@ -87,7 +89,7 @@ trait LinksComponent {
       } yield {
         (link, count)
       }
-      query.firstOption.getOrElse(throw LinkDoesNotExists(code))
+      query.firstOption.getOrElse(throw LinkDoesNotExists(code, ValidationException.NOT_FOUND))
     }
 
 

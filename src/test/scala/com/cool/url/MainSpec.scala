@@ -12,8 +12,9 @@ class MainSpec extends BaseSpec with BeforeAndAfterAll {
   override val invokeBeforeAllAndAfterAllEvenIfNoTestsAreExpected = true
 
   override protected def beforeAll(): Unit = {
-    import context.connector.driver.simple._
+
     import context._
+    import context.connector.driver.simple._
 
     connector.schema.map(schemaName => {
       val connection: Connection = connector.db.createConnection()

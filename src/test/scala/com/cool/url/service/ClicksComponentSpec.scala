@@ -51,12 +51,12 @@ class ClicksComponentSpec extends BaseSpec with ClicksComponentFixture with Befo
                 val createdClicks = (0 to index).map(num => {
                   val timestamp = new Timestamp(System.currentTimeMillis)
                   val referer = s"http://ya.ru/page-${index}"
-                  val remote_ip = s"127.0.0.${index}"
-                  val clickForCode = clicks.addClickForCode(code, timestamp, referer, remote_ip)
+                  val remoteIp = s"127.0.0.${index}"
+                  val clickForCode = clicks.addClickForCode(code, timestamp, referer, remoteIp)
                   clickForCode.linkCode should  be(code)
                   clickForCode.date should  be(timestamp)
                   clickForCode.referer should  be(referer)
-                  clickForCode.remote_ip should  be(remote_ip)
+                  clickForCode.remoteIp should  be(remoteIp)
                   clickForCode
                 }).toList
                 codeToClicks.update(code, createdClicks)

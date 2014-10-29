@@ -99,7 +99,7 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
           "return link fow correct code and token" in {
             userIdToLinks.foreach({ case (userId, checkedLinks) =>
               checkedLinks.foreach(checkedLink => {
-                links.linkByCode(checkedLink.token, checkedLink.code) should be(checkedLink)
+                links.linkByCodeAndToken(checkedLink.token, checkedLink.code) should be(checkedLink)
               })
             })
           }
@@ -107,7 +107,7 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
             val token = tokensToUserId.keys.head
             val link = links.create(token, s"http://google.com/private", None, None)
             val otherUserToken = tokensToUserId.keys.filterNot(_ == token).head
-            val linkDoesNotExists = the[LinkDoesNotExists] thrownBy links.linkByCode(otherUserToken, link.code)
+            val linkDoesNotExists = the[LinkDoesNotExists] thrownBy links.linkByCodeAndToken(otherUserToken, link.code)
             linkDoesNotExists.code should be(link.code)
           }
           //TODO:  Generalize this

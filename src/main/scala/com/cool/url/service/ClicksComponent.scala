@@ -14,7 +14,7 @@ trait ClicksComponent {
 
   val LINK_CODE_CONSTRAINT: String = "fk_clicks_to_link"
 
-  case class Click(linkCode: LinkCode, date: Timestamp, referer: String, remote_ip: String)
+  case class Click(linkCode: LinkCode, date: Timestamp, referer: String, remoteIp: String)
 
   class Clicks(tag: Tag) extends Table[Click](tag, connector.schema, "clicks") {
     def linkCode = column[LinkCode]("link_code")
@@ -34,14 +34,14 @@ trait ClicksComponent {
 
   object clicks extends TableQuery(new Clicks(_)) with PaginationExtension[Clicks] {
 
-    def addClickForCode(code: LinkCode, date: Timestamp, referer: String, remote_ip: String)(implicit session: Session): Click = {
+    def addClickForCode(code: LinkCode, date: Timestamp, referer: String, remoteIp: String)(implicit session: Session): Click = {
       try {
-        val click = Click(code, date, referer, remote_ip)
+        val click = Click(code, date, referer, remoteIp)
         this += click
         click
       } catch {
         case connector.UNIQUE_VIOLATION(LINK_CODE_CONSTRAINT) =>
-          throw LinkDoesNotExists(code)
+          throw LinkDoesNotExists(code, ValidationException.NOT_FOUND)
       }
     }
 

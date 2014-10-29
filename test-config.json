@@ -1,0 +1,11 @@
+{
+  "db" : {
+    "host" : "localhost:5432",
+    "base" : "url_t",
+    "user" : "uurl",
+    "password" : "uurl",
+    "schema" : "test"
+  },
+  "httpPort" : 8080,
+  "backendSecret" : "67^]UarhSB-pVn8"
+}
