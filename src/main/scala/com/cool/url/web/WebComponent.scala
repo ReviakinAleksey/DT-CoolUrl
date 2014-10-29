@@ -2,6 +2,7 @@ package com.cool.url.web
 
 import java.io.OutputStream
 import java.net.URI
+import java.util.concurrent.Executors
 
 import com.cool.url.config.ConfigProviderComponent
 import com.cool.url.dao.DaoComponent
@@ -16,7 +17,7 @@ import unfiltered.directives.Directives._
 import unfiltered.directives.Result.{Failure, Success}
 import unfiltered.directives._
 import unfiltered.netty.ExceptionHandler
-import unfiltered.netty.cycle.{Plan, ThreadPool}
+import unfiltered.netty.cycle.{DeferredIntent, DeferralExecutor, Plan, ThreadPool}
 import unfiltered.request._
 import unfiltered.response._
 import unfiltered.util.RunnableServer
@@ -71,9 +72,14 @@ trait WebPlan extends StrictLogging {
         }
       }
     }
+    private val executor = Executors.newCachedThreadPool()
+
+    trait WebThreadPool extends DeferralExecutor with DeferredIntent {
+      val underlying = executor
+    }
 
     @Sharable
-    class WebPlanned(intentIn: Plan.Intent) extends Plan with ThreadPool with CustomServerErrorResponse {
+    class WebPlanned(intentIn: Plan.Intent) extends Plan with WebThreadPool with CustomServerErrorResponse {
       val intent = intentIn
     }
 
