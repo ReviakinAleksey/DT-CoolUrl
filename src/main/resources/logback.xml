@@ -10,9 +10,8 @@
     </appender>
 
     <logger name="com.cool.url" level="DEBUG" />
-    <logger name="scala.slick" level="INFO"/>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 
