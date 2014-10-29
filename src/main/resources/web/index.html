@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cool URL debug page</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.0/angular.js"/>
+    <script type="text/javascript">
+        // declare a module
+
+    </script>
+</head>
+
+<body>
+
+<script type="text/javascript">
+    var appModule = angular.module('debugApp', []);
+
+    appModule.factory('$backend', ['$http', function ($http) {
+        $http.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+        var service = {};
+        service.get = function (link, parameters, scope) {
+            $http.get(link, {params: parameters}).
+                    success(function (data) {
+                        scope.result = data;
+                    }).
+                    error(function (data) {
+                        scope.result = data;
+                    });
+        };
+        service.post = function (link, parameters, scope) {
+            var payload = [];
+            angular.forEach(parameters, function (value, key) {
+                payload.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+            });
+            $http.post(link, payload.join('&')).
+                    success(function (data) {
+                        scope.result = data;
+                    }).
+                    error(function (data) {
+                        scope.result = data;
+                    });
+        };
+        return service;
+    }]);
+
+    appModule.controller('obtainTokenController', ['$scope', '$backend', function ($scope, $backend) {
+        $scope.params = {
+            secret: '67^]UarhSB-pVn8',
+            userId: 343
+        };
+        $scope.getToken = function (params) {
+            $backend.get('token', params, $scope);
+        };
+    }]);
+
+
+    appModule.controller('createLinkController', ['$scope', '$backend', function ($scope, $backend) {
+        $scope.getLink = function (params) {
+            $backend.post('link', params, $scope);
+        };
+    }]);
+
+    appModule.controller('readLinksController', ['$scope', '$backend', function ($scope, $backend) {
+        $scope.getLinks = function (params) {
+            $backend.get('link', params, $scope);
+        };
+    }]);
+
+    appModule.controller('registerClickController', ['$scope', '$backend', function ($scope, $backend) {
+        $scope.code = '';
+        $scope.click = function (code, params) {
+            $backend.post('link/' + code, params, $scope);
+        };
+    }]);
+
+    appModule.controller('countOfClicksController', ['$scope', '$backend', function ($scope, $backend) {
+        $scope.code = '';
+        $scope.getCount = function (code, params) {
+            $backend.get('link/' + code, params, $scope);
+        };
+    }]);
+
+    appModule.controller('listOfFolderLinksController', ['$scope', '$backend', function ($scope, $backend) {
+        $scope.folderId = '';
+        $scope.getLinks = function (folderId, params) {
+            $backend.get('folder/' + folderId, params, $scope);
+        };
+    }]);
+
+    appModule.controller('readFoldersController', ['$scope', '$backend', function ($scope, $backend) {
+        $scope.geFolders = function (params) {
+            $backend.get('folder', params, $scope);
+        };
+    }]);
+
+    appModule.controller('clicksForCodeController', ['$scope', '$backend', function ($scope, $backend) {
+        $scope.code = '';
+        $scope.getClicks = function (code, params) {
+            $backend.get('link/' + code + '/clicks', params, $scope);
+        };
+    }]);
+
+
+</script>
+<div ng-app="debugApp">
+    <table width="100%">
+        <tr>
+            <td>
+                <div ng-controller="obtainTokenController">
+                    <h3>Obtain token for userId (GET /token)</h3>
+
+                    <form>
+                        Secret: <input type="text" ng-model="params.secret"><br/>
+                        User ID:<input type="text" ng-model="params.userId">
+                        <button ng-click="getToken(params)">OBTAIN</button>
+                    </form>
+                    <p>Result: {{result | json}}</p>
+                </div>
+            </td>
+            <td>
+                <div ng-controller="createLinkController">
+                    <h3>Create link by user token (POST /link)</h3>
+
+                    <form>
+                        Token: <input type="text" ng-model="params.token"><br/>
+                        Url: <input type="text" ng-model="params.url"><br/>
+                        Code[Opt]: <input type="text" ng-model="params.code"><br/>
+                        Folder ID[Opt]: <input type="number" ng-model="params.folder_id">
+                        <button ng-click="getLink(params)">OBTAIN</button>
+                    </form>
+                    <p>Result: {{result | json}}</p>
+                </div>
+            </td>
+            <td>
+                <div ng-controller="readLinksController">
+                    <h3>Obtain links for user token (GET /link)</h3>
+
+                    <form>
+                        Token: <input type="text" ng-model="params.token"><br/>
+                        Offset: <input type="text" ng-model="params.offset"><br/>
+                        Limit: <input type="text" ng-model="params.limit">
+                        <button ng-click="getLinks(params)">OBTAIN</button>
+                    </form>
+                    <p>Result: {{result | json}}</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div ng-controller="registerClickController">
+                    <h3>Register click for link (POST /link/$code)</h3>
+
+                    <form>
+                        Code: <input type="text" ng-model="code"><br/>
+                        Referer: <input type="text" ng-model="params.referer"><br/>
+                        Remote IP: <input type="text" ng-model="params.remote_ip">
+                        <button ng-click="click(code, params)">OBTAIN</button>
+                    </form>
+                    <p>Result: {{result | json}}</p>
+                </div>
+            </td>
+            <td>
+                <div ng-controller="countOfClicksController">
+                    <h3>Get count of clicks for link (GET /link/$code)</h3>
+
+                    <form>
+                        Code: <input type="text" ng-model="code"><br/>
+                        Token: <input type="text" ng-model="params.token"><br/>
+                        <button ng-click="getCount(code, params)">OBTAIN</button>
+                    </form>
+                    <p>Result: {{result | json}}</p>
+                </div>
+            </td>
+            <td>
+                <div ng-controller="listOfFolderLinksController">
+                    <h3>Obtain links for folder (GET /folder/$id)</h3>
+
+                    <form>
+                        Token: <input type="text" ng-model="params.token"><br/>
+                        Folder ID: <input type="text" ng-model="folderId"><br/>
+                        Offset: <input type="text" ng-model="params.offset"><br/>
+                        Limit: <input type="text" ng-model="params.limit">
+                        <button ng-click="getLinks(folderId, params)">OBTAIN</button>
+                    </form>
+                    <p>Result: {{result | json}}</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div ng-controller="readFoldersController">
+                    <h3>Obtain folders for user token (GET /folder)</h3>
+
+                    <form>
+                        Token: <input type="text" ng-model="params.token"><br/>
+                        Offset: <input type="text" ng-model="params.offset"><br/>
+                        Limit: <input type="text" ng-model="params.limit">
+                        <button ng-click="geFolders(params)">OBTAIN</button>
+                    </form>
+                    <p>Result: {{result | json}}</p>
+                </div>
+            </td>
+            <td>
+                <div ng-controller="clicksForCodeController">
+                    <h3>Obtain folders for user token (GET /link/$code/clicks)</h3>
+
+                    <form>
+                        Token: <input type="text" ng-model="params.token"><br/>
+                        Code: <input type="text" ng-model="code"><br/>
+                        Offset: <input type="text" ng-model="params.offset"><br/>
+                        Limit: <input type="text" ng-model="params.limit">
+                        <button ng-click="getClicks(code, params)">OBTAIN</button>
+                    </form>
+                    <p>Result: {{result | json}}</p>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+</body>
+
+</html>

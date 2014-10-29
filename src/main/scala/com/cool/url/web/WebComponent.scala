@@ -23,6 +23,8 @@ import unfiltered.response._
 import unfiltered.util.RunnableServer
 import unfiltered.util.control.NonFatal
 
+import scala.io.Source
+
 
 trait WebComponent {
   val webService: WebService
@@ -144,7 +146,12 @@ trait UnfilteredWebComponent extends WebComponent with WebPlan {
 
     val tokenExtractor = data.as.Required[String] named "token"
 
-    val shutdownPlan = WebPlan {
+    val classLoader = getClass.getClassLoader
+
+    val basePlan = WebPlan {
+      case Path(Seg("index.html"::Nil)) =>
+        val content:String = Source.fromFile(classLoader.getResource("web/index.html").getFile).mkString
+        HtmlContent ~> ResponseString(content)
       case Path(Seg("shutdown" :: Nil)) =>
         stop()
         ResponseString("ok")
@@ -247,7 +254,7 @@ trait UnfilteredWebComponent extends WebComponent with WebPlan {
     def start(): Unit = {
 
       server = Some(unfiltered.netty.Server.local(config.httpPort).
-        plan(shutdownPlan).plan(tokenPlan).plan(linkPlan).plan(folderPlan)
+        plan(basePlan).plan(tokenPlan).plan(linkPlan).plan(folderPlan)
       )
       server.map(_.run())
     }
