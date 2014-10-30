@@ -3,6 +3,11 @@ package com.cool.url.service
 
 import scala.slick.lifted.ProvenShape
 
+object LinksComponent{
+  private val USER_CODE_CONSTRAINT = "fK_links_to_user"
+  private val FOLDER_ID_CONSTRAINT = "fk_links_to_folder"
+}
+
 
 trait LinksComponent {
   this: DbConnectorComponent
@@ -17,8 +22,7 @@ trait LinksComponent {
 
   case class Link(code: LinkCode, token: UserToken, url: String, folder: Option[Long])
 
-  val USER_CODE_CONSTRAINT = "fK_links_to_user"
-  val FOLDER_ID_CONSTRAINT = "fk_links_to_folder"
+
 
   class Links(tag: Tag) extends Table[Link](tag, connector.schema, "links") {
     def code = column[LinkCode]("code", O.PrimaryKey)
@@ -31,9 +35,9 @@ trait LinksComponent {
 
     override def * : ProvenShape[Link] = (code, token, url, folderId) <>(Link.tupled, Link.unapply)
 
-    def user = foreignKey(USER_CODE_CONSTRAINT, token, users)(_.token, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def user = foreignKey(LinksComponent.USER_CODE_CONSTRAINT, token, users)(_.token, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
-    def folder = foreignKey(FOLDER_ID_CONSTRAINT, (folderId, token), folders)(folder => (folder.id, folder.token), onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def folder = foreignKey(LinksComponent.FOLDER_ID_CONSTRAINT, (folderId, token), folders)(folder => (folder.id, folder.token), onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
     //TODO: add index on folders
   }
@@ -55,8 +59,8 @@ trait LinksComponent {
       } catch {
         case connector.UNIQUE_VIOLATION(constraint) =>
           (constraint, folderId, code) match {
-            case (USER_CODE_CONSTRAINT, _, _) => throw UserTokenUnknown(token, ValidationException.INTERNAL_ERROR)
-            case (FOLDER_ID_CONSTRAINT, Some(folder), _) => throw FolderIsNotExists(folder, ValidationException.INTERNAL_ERROR)
+            case (LinksComponent.USER_CODE_CONSTRAINT, _, _) => throw UserTokenUnknown(token, ValidationException.FORBIDDEN)
+            case (LinksComponent.FOLDER_ID_CONSTRAINT, Some(folder), _) => throw FolderIsNotExists(folder, ValidationException.INTERNAL_ERROR)
             case (_, _, Some(requestedCode)) => throw LinkCodeIsAlreadyOccupied(requestedCode, ValidationException.INTERNAL_ERROR)
             case (_, _, None) =>
               //Race conditions, re-request new code
@@ -69,7 +73,7 @@ trait LinksComponent {
       this.filter(_.code === code).firstOption.getOrElse(throw LinkDoesNotExists(code, ValidationException.NOT_FOUND))
 
     def linkByCodeAndToken(token: UserToken, code: LinkCode)(implicit session: Session): Link =
-      this.filter(_.code === code).filter(_.token === token).firstOption.getOrElse(throw LinkDoesNotExists(code, ValidationException.INTERNAL_ERROR))
+      this.filter(_.code === code).filter(_.token === token).firstOption.getOrElse(throw LinkDoesNotExists(code, ValidationException.FORBIDDEN))
 
     def linksByToken(token: UserToken, paging: Option[Paging] = None)(implicit session: Session) = {
       this.filter(_.token === token).withPaging(paging)

@@ -4,6 +4,9 @@ import java.sql.Timestamp
 
 import scala.slick.lifted.ProvenShape
 
+object ClicksComponent{
+  private val LINK_CODE_CONSTRAINT = "fk_clicks_to_link"
+}
 
 trait ClicksComponent {
   this: DbConnectorComponent
@@ -12,7 +15,6 @@ trait ClicksComponent {
 
   import connector.driver.simple._
 
-  val LINK_CODE_CONSTRAINT: String = "fk_clicks_to_link"
 
   case class Click(linkCode: LinkCode, date: Timestamp, referer: String, remoteIp: String)
 
@@ -27,7 +29,7 @@ trait ClicksComponent {
 
     override def * : ProvenShape[Click] = (linkCode, date, referer, remote_ip) <>(Click.tupled, Click.unapply)
 
-    def link = foreignKey(LINK_CODE_CONSTRAINT, linkCode, links)(_.code, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def link = foreignKey(ClicksComponent.LINK_CODE_CONSTRAINT, linkCode, links)(_.code, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
     def linkCodeIndex = index("link_code_index", linkCode)
   }
@@ -40,7 +42,7 @@ trait ClicksComponent {
         this += click
         click
       } catch {
-        case connector.UNIQUE_VIOLATION(LINK_CODE_CONSTRAINT) =>
+        case connector.UNIQUE_VIOLATION(ClicksComponent.LINK_CODE_CONSTRAINT) =>
           throw LinkDoesNotExists(code, ValidationException.NOT_FOUND)
       }
     }

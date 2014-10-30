@@ -3,6 +3,12 @@ package com.cool.url.service
 import scala.slick.lifted.ProvenShape
 
 
+object  FoldersComponent {
+  private val USER_CODE_CONSTRAINT = "fK_folders_to_user"
+  private val FOLDER_TO_USER_CODE_INDEX = "idx_folders_id_and_token"
+  private val FOLDER_TITLE_TO_USER_CODE_INDEX = "idx_folders_token_and_title"
+}
+
 trait FoldersComponent {
   this: DbConnectorComponent
     with QueryExtensions
@@ -23,26 +29,34 @@ trait FoldersComponent {
 
     override def * : ProvenShape[Folder] = (id, token, title) <>(Folder.tupled, Folder.unapply)
 
-    def user = foreignKey("fK_folders_to_user", token, users)(_.token, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def user = foreignKey(FoldersComponent.USER_CODE_CONSTRAINT, token, users)(_.token, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
 
-    def id_to_token_index = index("idx_folders_id_and_token", (id, token), unique = true)
+    def id_to_token_index = index(FoldersComponent.FOLDER_TO_USER_CODE_INDEX, (id, token), unique = true)
+
+    def unique_folder_name_index = index(FoldersComponent.FOLDER_TITLE_TO_USER_CODE_INDEX, (token, title), unique = true)
+
   }
 
-  object folders extends TableQuery(new Folders(_)) with PaginationExtension[Folders]{
+  object folders extends TableQuery(new Folders(_)) with PaginationExtension[Folders] {
 
     def createForToken(token: UserToken, title: String)(implicit session: Session): Folder = {
-      val id = this.map(_.title).returning(this.map(_.id)).insert(title)
-      Folder(id, token, title)
+      try {
+        val id = this.map(folder => (folder.token, folder.title)).returning(this.map(_.id)).insert((token, title))
+        Folder(id, token, title)
+      } catch {
+        case connector.UNIQUE_VIOLATION(FoldersComponent.USER_CODE_CONSTRAINT) => throw UserTokenUnknown(token, ValidationException.FORBIDDEN)
+        case connector.UNIQUE_VIOLATION(FoldersComponent.FOLDER_TITLE_TO_USER_CODE_INDEX) => throw FolderAlreadyExists(title, ValidationException.INTERNAL_ERROR)
+      }
     }
 
 
     def folderByTokenAndId(token: UserToken, folderId: FolderId)(implicit session: Session): Folder = {
-      this.filter(_.token === token).filter(_.id === folderId).firstOption.getOrElse(throw UserTokenUnknown(token, ValidationException.INTERNAL_ERROR))
+      this.filter(_.token === token).filter(_.id === folderId).firstOption.getOrElse(throw UserTokenUnknown(token, ValidationException.FORBIDDEN))
     }
 
 
-    def foldersByToken(token: UserToken, paging:Option[Paging])(implicit session: Session): PagingResult[Folder] = {
+    def foldersByToken(token: UserToken, paging: Option[Paging])(implicit session: Session): PagingResult[Folder] = {
       this.filter(_.token === token).withPaging(paging)
     }
 

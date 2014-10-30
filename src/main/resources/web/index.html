@@ -100,6 +100,13 @@
     }]);
 
 
+    appModule.controller('createFolderController', ['$scope', '$backend', function ($scope, $backend) {
+        $scope.createFolder = function (params) {
+            $backend.post('folder', params, $scope);
+        };
+    }]);
+
+
 </script>
 <div ng-app="debugApp">
     <table width="100%">
@@ -125,7 +132,7 @@
                         Url: <input type="text" ng-model="params.url"><br/>
                         Code[Opt]: <input type="text" ng-model="params.code"><br/>
                         Folder ID[Opt]: <input type="number" ng-model="params.folder_id">
-                        <button ng-click="getLink(params)">OBTAIN</button>
+                        <button ng-click="getLink(params)">CREATE</button>
                     </form>
                     <p>Result: {{result | json}}</p>
                 </div>
@@ -201,7 +208,7 @@
             </td>
             <td>
                 <div ng-controller="clicksForCodeController">
-                    <h3>Obtain folders for user token (GET /link/$code/clicks)</h3>
+                    <h3>Obtain clicks for user token (GET /link/$code/clicks)</h3>
 
                     <form>
                         Token: <input type="text" ng-model="params.token"><br/>
@@ -209,6 +216,18 @@
                         Offset: <input type="text" ng-model="params.offset"><br/>
                         Limit: <input type="text" ng-model="params.limit">
                         <button ng-click="getClicks(code, params)">OBTAIN</button>
+                    </form>
+                    <p>Result: {{result | json}}</p>
+                </div>
+            </td>
+            <td>
+                <div ng-controller="createFolderController">
+                    <h3>Obtain token for userId (POST /folder)</h3>
+
+                    <form>
+                        Token: <input type="text" ng-model="params.token"><br/>
+                        Title:<input type="text" ng-model="params.title">
+                        <button ng-click="createFolder(params)">CREATE</button>
                     </form>
                     <p>Result: {{result | json}}</p>
                 </div>

@@ -232,6 +232,13 @@ trait UnfilteredWebComponent extends WebComponent with WebPlan {
       Directive.Intent {
         case req@Path(Seg("folder" :: _)) =>
           req match {
+            case POST(Path(Seg(_ :: Nil))) =>
+              for {
+                token <- tokenExtractor
+                title <-  data.as.Required[String] named "title"
+              } yield  {
+                standardResponse(daoService.createFolder(token, title))
+              }
             case GET(Path(Seg(_ :: IntPath(id) :: Nil))) =>
               for {
                 token <- tokenExtractor

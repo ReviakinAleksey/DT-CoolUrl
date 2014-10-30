@@ -29,6 +29,8 @@ trait DaoComponent {
     def readLinksByFolder(token: UserToken, folderId: FolderId, paging: Option[Paging]): PagingResult[Link]
 
     def readFoldersByToken(token: UserToken, paging: Option[Paging]): PagingResult[Folder]
+
+    def createFolder(token: UserToken, title: String): Folder
   }
 
 }
@@ -55,7 +57,7 @@ trait SlickDaoComponent extends DaoComponent with StrictLogging {
       })
     } else {
       logger.warn(s"User with userId: $userId requested for a token with a fraud secret: $target")
-      throw new ExternalAuthFailure(target, ValidationException.INTERNAL_ERROR)
+      throw new ExternalAuthFailure(target, ValidationException.FORBIDDEN)
     }
 
 
@@ -142,6 +144,16 @@ trait SlickDaoComponent extends DaoComponent with StrictLogging {
           logger.debug(s"User with token: $token obtained folders, count is ${result.count}")
           result
         }
+      })
+    }
+
+    def createFolder(token: UserToken, title: String) = {
+      logger.debug(s"User with token: $token requested to create folder with title: $title")
+      connector.db.withSession({
+        implicit session =>
+          val result = folders.createForToken(token,title)
+          logger.debug(s"User with token: $token created folder: $result")
+          result
       })
     }
   }

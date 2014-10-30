@@ -18,6 +18,7 @@ object ValidationException {
   type Status = HttpResponseStatus
 
   val NOT_FOUND = HttpResponseStatus.NOT_FOUND
+  val FORBIDDEN = HttpResponseStatus.FORBIDDEN
   val INTERNAL_ERROR = HttpResponseStatus.INTERNAL_SERVER_ERROR
 }
 
@@ -44,4 +45,9 @@ case class LinkCodeIsAlreadyOccupied(code: String, status: ValidationException.S
 case class LinkDoesNotExists(code: String, status: ValidationException.Status) extends ValidationException[List[String]] {
   val messageCode = "link.does.not.exist"
   val parameters = List(code)
+}
+
+case class FolderAlreadyExists(title: String, status: ValidationException.Status) extends ValidationException[List[String]] {
+  val messageCode = "folder.already.exist"
+  val parameters = List(title)
 }
