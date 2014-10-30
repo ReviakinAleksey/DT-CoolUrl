@@ -11,12 +11,14 @@ trait UsersComponent {
 
   type UserToken = String
 
+  private val TOKEN_COLUMN_LENGTH = 36
+
   case class User(id: Long, token: UserToken)
 
   class Users(tag: Tag) extends Table[User](tag, connector.schema, "users") {
     def id: Column[Long] = column[Long]("id")
 
-    def token: Column[UserToken] = column[UserToken]("token", O.PrimaryKey)
+    def token: Column[UserToken] = column[UserToken]("token", O.PrimaryKey, O.Length(TOKEN_COLUMN_LENGTH, false))
 
     override def * : ProvenShape[User] = (id, token) <>(User.tupled, User.unapply)
 
@@ -28,7 +30,7 @@ trait UsersComponent {
   trait LinkedToUser {
     self: Table[_] =>
 
-    def token: Column[UserToken] = column[UserToken]("user_token")
+    def token: Column[UserToken] = column[UserToken]("user_token", O.Length(TOKEN_COLUMN_LENGTH, false))
   }
 
 

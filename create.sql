@@ -1,13 +1,13 @@
-create table "production"."users" ("id" BIGINT NOT NULL,"token" VARCHAR(254) NOT NULL PRIMARY KEY);
+create table "production"."users" ("id" BIGINT NOT NULL,"token" CHAR(36) NOT NULL PRIMARY KEY);
 create unique index "idx_users_id" on "production"."users" ("id");
-create table "production"."links" ("code" VARCHAR(254) NOT NULL PRIMARY KEY,"user_token" VARCHAR(254) NOT NULL,"url" VARCHAR(254) NOT NULL,"id_folder" BIGINT);
+create table "production"."links" ("code" VARCHAR(254) NOT NULL PRIMARY KEY,"user_token" CHAR(36) NOT NULL,"url" VARCHAR(254) NOT NULL,"id_folder" BIGINT);
 create index "idx_links_folder" on "production"."links" ("id_folder");
 create index "idx_links_token" on "production"."links" ("user_token");
 create sequence production.link_code_seq;
 
 alter table production.links
  alter column code set default 'lk' || nextval('production.link_code_seq');
-create table "production"."folders" ("id" BIGSERIAL NOT NULL PRIMARY KEY,"user_token" VARCHAR(254) NOT NULL,"title" VARCHAR(254) NOT NULL);
+create table "production"."folders" ("id" BIGSERIAL NOT NULL PRIMARY KEY,"user_token" CHAR(36) NOT NULL,"title" VARCHAR(254) NOT NULL);
 create unique index "idx_folders_id_and_token" on "production"."folders" ("id","user_token");
 create index "idx_folders_token" on "production"."folders" ("user_token");
 create unique index "idx_folders_token_and_title" on "production"."folders" ("user_token","title");
