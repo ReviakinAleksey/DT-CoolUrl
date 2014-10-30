@@ -65,6 +65,14 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
             }
             folderIsNotExists.folderId should be(folderId)
           }
+          "fail to create link with invalid url" in {
+            val token = tokensToUserId.keys.headOption.get
+            val url = "dsdfsdsdff"
+            val urlMalformed = the[UrlMalformed] thrownBy {
+              links.create(token, url, None, None)
+            }
+            urlMalformed.url should be(url)
+          }
           "allow to create links with auto generated tokens" in {
             createLinksWithAutoCodeForUsers.foreach(_.code.length should be > 0)
           }

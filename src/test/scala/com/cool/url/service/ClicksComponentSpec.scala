@@ -45,6 +45,16 @@ class ClicksComponentSpec extends BaseSpec with ClicksComponentFixture with Befo
               linkNotExists.code should be(code)
             }
           }
+          "fail to create clikc with invalid referer" in {
+            val referer = "dsdfsdsdff"
+            val timestamp = new Timestamp(System.currentTimeMillis)
+            val remoteIp = s"127.0.0.30"
+            val code = codeToLink.keys.head
+            val urlMalformed = the[UrlMalformed] thrownBy {
+              clicks.addClickForCode(code, timestamp, referer, remoteIp)
+            }
+            urlMalformed.url should be(referer)
+          }
           "allow to create clicks with proper code" in {
             codeToLink.keys.zipWithIndex.foreach({
               case (code, index) =>

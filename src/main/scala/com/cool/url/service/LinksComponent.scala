@@ -56,6 +56,7 @@ trait LinksComponent {
 
 
     def create(token: UserToken, url: String, code: Option[LinkCode], folderId: Option[FolderId])(implicit session: Session): Link = {
+      UrlMalformed.validate(url, "link.code", ValidationException.INTERNAL_ERROR)
       try {
         val dbCode: String = code match {
           case Some(enteredCode) =>

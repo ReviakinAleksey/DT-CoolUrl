@@ -1,6 +1,9 @@
 package com.cool.url.service
 
+import java.net.URL
+
 import io.netty.handler.codec.http.HttpResponseStatus
+import scala.util.{Failure, Success, Try}
 
 
 case class ValidationResponse[T]( messageCode: String,parameters: T )
@@ -50,4 +53,16 @@ case class LinkDoesNotExists(code: String, status: ValidationException.Status) e
 case class FolderAlreadyExists(title: String, status: ValidationException.Status) extends ValidationException[List[String]] {
   val messageCode = "folder.already.exist"
   val parameters = List(title)
+}
+
+
+case class UrlMalformed(url: String, path: String, status: ValidationException.Status) extends ValidationException[List[String]] {
+  val messageCode = "provided.url.malformed"
+  val parameters = List(url,path)
+}
+
+object UrlMalformed {
+  def validate(url: String, path: String, status: ValidationException.Status): Unit = {
+    Try(new URL(url).toURI).transform(Success(_), _ => Failure(UrlMalformed(url, path, status))).get
+  }
 }
