@@ -32,8 +32,8 @@ trait SlickDbConnectorComponent {
   this: DbConnectorComponent with ConfigProviderComponent =>
 
   class SlickDbConnector extends DbConnector {
-    val UNIQUE_VIOLATION_CODE = "23505"
-    val FOREIGN_KEY_VIOLATION = "23503"
+    private val UNIQUE_VIOLATION_CODE = "23505"
+    private val FOREIGN_KEY_VIOLATION = "23503"
 
     private val dataSource = {
       val source: ComboPooledDataSource = new ComboPooledDataSource()
@@ -84,10 +84,12 @@ trait QueryExtensions {
   trait PaginationExtension[E <: AbstractTable[_]] {
     self:TableQuery[E] =>
 
+    private val DEFAULT_PAGING_LIMIT = 50
+
     implicit class QueryExtensions[Q <: Query[E, E#TableElementType, Seq]](val q: Q){
 
       def paginate(paging: Paging): Query[E, E#TableElementType, scala.Seq] =
-        q.drop(paging.offset).take(paging.limit.getOrElse(0))
+        q.drop(paging.offset).take(paging.limit.getOrElse(DEFAULT_PAGING_LIMIT))
 
       def rowsCount:Column[Int] = q.length
 
