@@ -40,6 +40,7 @@ trait FoldersComponent {
 
     def uniqueFolderNameIndex: Index = index(FoldersComponent.FOLDER_TITLE_TO_USER_CODE_INDEX, (token, title), unique = true)
 
+    def folderIndex: Index = index("idx_folders_token", token)
   }
 
   object folders extends TableQuery(new Folders(_)) with PaginationExtension[Folders] {

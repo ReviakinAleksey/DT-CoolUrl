@@ -21,7 +21,7 @@ trait UsersComponent {
     override def * : ProvenShape[User] = (id, token) <>(User.tupled, User.unapply)
 
 
-    def tokenIndex:Index = index("idx_user_token", token, unique = true)
+    def userIdIndex:Index = index("idx_users_id", id, unique = true)
   }
 
 

@@ -1,7 +1,7 @@
 package com.cool.url.service
 
 
-import scala.slick.lifted.{ForeignKeyQuery, ProvenShape}
+import scala.slick.lifted.{Index, ForeignKeyQuery, ProvenShape}
 
 object LinksComponent{
   private val USER_CODE_CONSTRAINT = "fK_links_to_user"
@@ -45,13 +45,14 @@ trait LinksComponent {
         onUpdate = ForeignKeyAction.Restrict,
         onDelete = ForeignKeyAction.Cascade)
 
-    //TODO: add index on folders
+    def tokenIndex: Index = index("idx_links_token", token)
+
+    def folderIdIndex: Index = index("idx_links_folder", folderId)
   }
 
 
   object links extends TableQuery(new Links(_)) with PaginationExtension[Links] {
 
-    type QueryLocal = Query[Links, Links#TableElementType, Seq]
 
     def create(token: UserToken, url: String, code: Option[LinkCode], folderId: Option[FolderId])(implicit session: Session): Link = {
       try {

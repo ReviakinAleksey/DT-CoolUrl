@@ -35,7 +35,7 @@ trait ClicksComponent {
         onUpdate = ForeignKeyAction.Restrict,
         onDelete = ForeignKeyAction.Cascade)
 
-    def linkCodeIndex:Index = index("link_code_index", linkCode)
+    def linkCodeIndex:Index = index("idx_clicks_link_code", linkCode)
   }
 
   object clicks extends TableQuery(new Clicks(_)) with PaginationExtension[Clicks] {
