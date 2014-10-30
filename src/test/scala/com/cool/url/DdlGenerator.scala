@@ -10,10 +10,10 @@ object DdlGenerator extends App{
   val context = new Environment("production") with SchemaComponent
 
   val createSql = new PrintWriter("create.sql")
-  context.ddl.createStatements.foreach(createSql.println)
+  context.ddl.createStatements.foreach(sql => createSql.println(sql+";"))
   createSql.close()
 
-  val dropSql = new PrintWriter("close.sql")
-  context.ddl.dropStatements.foreach(dropSql.println)
+  val dropSql = new PrintWriter("drop.sql")
+  context.ddl.dropStatements.foreach(sql => dropSql.println(sql+";"))
   dropSql.close()
 }
