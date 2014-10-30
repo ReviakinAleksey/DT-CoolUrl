@@ -22,12 +22,13 @@ trait LinksComponent {
 
   case class Link(code: LinkCode, token: UserToken, url: String, folder: Option[Long])
 
+  trait LinkedWithLink {
+    self: Table[_] =>
+    def linkCode: Column[LinkCode] = column[LinkCode]("link_code")
+  }
 
-
-  class Links(tag: Tag) extends Table[Link](tag, connector.schema, "links") {
+  class Links(tag: Tag) extends Table[Link](tag, connector.schema, "links") with LinkedToUser{
     def code:Column[LinkCode] = column[LinkCode]("code", O.PrimaryKey)
-
-    def token:Column[UserToken] = column[UserToken]("user_token")
 
     def url:Column[String] = column[String]("url")
 

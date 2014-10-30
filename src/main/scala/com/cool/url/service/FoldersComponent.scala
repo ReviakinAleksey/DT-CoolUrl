@@ -20,11 +20,9 @@ trait FoldersComponent {
 
   case class Folder(id: FolderId, token: UserToken, title: String)
 
-  class Folders(tag: Tag) extends Table[Folder](tag, connector.schema, "folders") {
+  class Folders(tag: Tag) extends Table[Folder](tag, connector.schema, "folders") with LinkedToUser {
 
     def id:Column[FolderId] = column[FolderId]("id", O.PrimaryKey, O.AutoInc)
-
-    def token: Column[UserToken] = column[UserToken]("user_token")
 
     def title: Column[String] = column[String]("title")
 

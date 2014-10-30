@@ -25,6 +25,13 @@ trait UsersComponent {
   }
 
 
+  trait LinkedToUser {
+    self: Table[_] =>
+
+    def token: Column[UserToken] = column[UserToken]("user_token")
+  }
+
+
   object users extends TableQuery(new Users(_)) {
 
     def getToken(userId: Long)(implicit session: Session): UserToken = {

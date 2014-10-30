@@ -18,9 +18,7 @@ trait ClicksComponent {
 
   case class Click(linkCode: LinkCode, date: Timestamp, referer: String, remoteIp: String)
 
-  class Clicks(tag: Tag) extends Table[Click](tag, connector.schema, "clicks") {
-
-    def linkCode:Column[LinkCode] = column[LinkCode]("link_code")
+  class Clicks(tag: Tag) extends Table[Click](tag, connector.schema, "clicks") with LinkedWithLink{
 
     def date:Column[Timestamp] = column[Timestamp]("date")
 
