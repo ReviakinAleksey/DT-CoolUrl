@@ -47,7 +47,7 @@ trait SlickDaoComponent extends DaoComponent with StrictLogging {
 
 
   class SlickDaoService extends DaoService {
-    def authorizeAndGetToken(target: AuthObject, userId: Long) = if (externalAuthService.isAuthorized(target)) {
+    def authorizeAndGetToken(target: AuthObject, userId: Long):UserToken = if (externalAuthService.isAuthorized(target)) {
       logger.debug(s"User with userId: $userId requested for a token")
       connector.db.withSession({
         implicit session =>
@@ -61,7 +61,7 @@ trait SlickDaoComponent extends DaoComponent with StrictLogging {
     }
 
 
-    def createLink(token: UserToken, url: String, code: Option[LinkCode], folderId: Option[FolderId]) = {
+    def createLink(token: UserToken, url: String, code: Option[LinkCode], folderId: Option[FolderId]):Link = {
       logger.debug(s"User with token: $token requested to create link(url: $url, code: $code, folderId: $folderId)")
       connector.db.withSession({
         implicit session => {
@@ -72,7 +72,7 @@ trait SlickDaoComponent extends DaoComponent with StrictLogging {
       })
     }
 
-    def getLink(code: LinkCode, referer: String, remoteIp: String) = {
+    def getLink(code: LinkCode, referer: String, remoteIp: String): Link = {
       logger.debug(s"Click for link with code: $code registration start(referer: $referer, remoteIp: $remoteIp)")
       connector.db.withSession({
         implicit session => {
@@ -110,7 +110,7 @@ trait SlickDaoComponent extends DaoComponent with StrictLogging {
     }
 
 
-    def readClicksByTokenAndCode(token: UserToken, code: LinkCode, paging: Option[Paging]) = {
+    def readClicksByTokenAndCode(token: UserToken, code: LinkCode, paging: Option[Paging]): PagingResult[Click] = {
       logger.debug(s"User with token: $token requested to read clicks for link code: $code with paging $paging")
       connector.db.withSession({
         implicit session => {
@@ -123,7 +123,7 @@ trait SlickDaoComponent extends DaoComponent with StrictLogging {
       })
     }
 
-    def readLinksByFolder(token: UserToken, folderId: FolderId, paging: Option[Paging]) = {
+    def readLinksByFolder(token: UserToken, folderId: FolderId, paging: Option[Paging]): PagingResult[Link] = {
       logger.debug(s"User with token: $token requested requested to read folder content of folder with id $folderId, with paging $paging")
       connector.db.withSession({
         implicit session => {
@@ -136,7 +136,7 @@ trait SlickDaoComponent extends DaoComponent with StrictLogging {
       })
     }
 
-    def readFoldersByToken(token: UserToken, paging: Option[Paging]) = {
+    def readFoldersByToken(token: UserToken, paging: Option[Paging]): PagingResult[Folder]  = {
       logger.debug(s"User with token: $token requested to read folders, with paging $paging")
       connector.db.withSession({
         implicit session => {
@@ -147,7 +147,7 @@ trait SlickDaoComponent extends DaoComponent with StrictLogging {
       })
     }
 
-    def createFolder(token: UserToken, title: String) = {
+    def createFolder(token: UserToken, title: String): Folder = {
       logger.debug(s"User with token: $token requested to create folder with title: $title")
       connector.db.withSession({
         implicit session =>

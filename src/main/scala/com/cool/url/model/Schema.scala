@@ -16,7 +16,7 @@ trait SchemaComponent {
 
   import connector.driver.simple._
 
-  def ddl = users.ddl ++ links.ddl ++ links.codeSequenceDDL ++ folders.ddl ++ clicks.ddl
+  def ddl:slickDriver.type#DDL = users.ddl ++ links.ddl ++ links.codeSequenceDDL ++ folders.ddl ++ clicks.ddl
 
 }
 

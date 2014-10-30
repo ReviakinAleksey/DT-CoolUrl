@@ -1,7 +1,7 @@
 package com.cool.url.service
 
 
-import scala.slick.lifted.ProvenShape
+import scala.slick.lifted.{ForeignKeyQuery, ProvenShape}
 
 object LinksComponent{
   private val USER_CODE_CONSTRAINT = "fK_links_to_user"
@@ -25,19 +25,25 @@ trait LinksComponent {
 
 
   class Links(tag: Tag) extends Table[Link](tag, connector.schema, "links") {
-    def code = column[LinkCode]("code", O.PrimaryKey)
+    def code:Column[LinkCode] = column[LinkCode]("code", O.PrimaryKey)
 
-    def token = column[UserToken]("user_token")
+    def token:Column[UserToken] = column[UserToken]("user_token")
 
-    def url = column[String]("url")
+    def url:Column[String] = column[String]("url")
 
-    def folderId = column[Option[FolderId]]("id_folder")
+    def folderId:Column[Option[FolderId]] = column[Option[FolderId]]("id_folder")
 
     override def * : ProvenShape[Link] = (code, token, url, folderId) <>(Link.tupled, Link.unapply)
 
-    def user = foreignKey(LinksComponent.USER_CODE_CONSTRAINT, token, users)(_.token, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def user: ForeignKeyQuery[Users, User] =
+      foreignKey(LinksComponent.USER_CODE_CONSTRAINT, token, users)(_.token,
+        onUpdate = ForeignKeyAction.Restrict,
+        onDelete = ForeignKeyAction.Cascade)
 
-    def folder = foreignKey(LinksComponent.FOLDER_ID_CONSTRAINT, (folderId, token), folders)(folder => (folder.id, folder.token), onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def folder:ForeignKeyQuery[Folders, Folder] =
+      foreignKey(LinksComponent.FOLDER_ID_CONSTRAINT, (folderId, token), folders)(folder => (folder.id, folder.token),
+        onUpdate = ForeignKeyAction.Restrict,
+        onDelete = ForeignKeyAction.Cascade)
 
     //TODO: add index on folders
   }
@@ -75,12 +81,12 @@ trait LinksComponent {
     def linkByCodeAndToken(token: UserToken, code: LinkCode)(implicit session: Session): Link =
       this.filter(_.code === code).filter(_.token === token).firstOption.getOrElse(throw LinkDoesNotExists(code, ValidationException.FORBIDDEN))
 
-    def linksByToken(token: UserToken, paging: Option[Paging] = None)(implicit session: Session) = {
+    def linksByToken(token: UserToken, paging: Option[Paging] = None)(implicit session: Session):PagingResult[Link] = {
       this.filter(_.token === token).withPaging(paging)
     }
 
 
-    def linksByFolder(folderId: FolderId, paging: Option[Paging] = None)(implicit session: Session) = {
+    def linksByFolder(folderId: FolderId, paging: Option[Paging] = None)(implicit session: Session):PagingResult[Link] = {
       this.filter(_.folderId === folderId).withPaging(paging)
     }
 

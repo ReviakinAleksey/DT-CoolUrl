@@ -20,7 +20,7 @@ trait HardCodedAuthService extends ExternalAuthComponent {
   type AuthObject = String
 
   class HardCodedAuthService extends ExternalAuthService {
-    def isAuthorized(target: String) = target == config.backendSecret
+    def isAuthorized(target: String): Boolean = target == config.backendSecret
   }
 
 }

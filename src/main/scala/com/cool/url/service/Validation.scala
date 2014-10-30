@@ -10,7 +10,7 @@ sealed trait ValidationException[T] extends Exception {
   val messageCode: String
   val parameters: T
 
-  def httpContent = ValidationResponse[T](messageCode, parameters)
+  def httpContent:ValidationResponse[T] = ValidationResponse[T](messageCode, parameters)
 }
 
 

@@ -52,8 +52,9 @@ trait SlickDbConnectorComponent {
     val UNIQUE_VIOLATION = new ConstraintViolation {
 
       override def unapply(th: Throwable): Option[String] = th match {
-        case psql: PSQLException if psql.getServerErrorMessage.getSQLState == UNIQUE_VIOLATION_CODE || psql.getServerErrorMessage.getSQLState == FOREIGN_KEY_VIOLATION =>
-          Some(psql.getServerErrorMessage.getConstraint)
+        case psql: PSQLException if psql.getServerErrorMessage.getSQLState == UNIQUE_VIOLATION_CODE ||
+          psql.getServerErrorMessage.getSQLState == FOREIGN_KEY_VIOLATION =>
+            Some(psql.getServerErrorMessage.getConstraint)
         case _ =>
           None
       }
@@ -62,7 +63,7 @@ trait SlickDbConnectorComponent {
     val schema = Some(config.db.schema)
 
 
-    def shutdown() = {
+    def shutdown(): Unit = {
       dataSource.close()
     }
   }
@@ -82,16 +83,15 @@ trait QueryExtensions {
 
   trait PaginationExtension[E <: AbstractTable[_]] {
     self:TableQuery[E] =>
-      def test(x: Query[E, E#TableElementType, Seq], paging: Int) = x.drop(paging).take(paging)
 
     implicit class QueryExtensions[Q <: Query[E, E#TableElementType, Seq]](val q: Q){
 
-      def paginate(paging: Paging)
-      = q.drop(paging.offset).take(paging.limit.getOrElse(0))
+      def paginate(paging: Paging): Query[E, E#TableElementType, scala.Seq] =
+        q.drop(paging.offset).take(paging.limit.getOrElse(0))
 
-      def rowsCount = q.length
+      def rowsCount:Column[Int] = q.length
 
-      def withPaging(pagingOption: Option[Paging])(implicit session: Session) = {
+      def withPaging(pagingOption: Option[Paging])(implicit session: Session):PagingResult[E#TableElementType]  = {
         val query = pagingOption.map(paginate(_)).getOrElse(q)
         new PagingResult[E#TableElementType](q.rowsCount.run, query.list)
       }

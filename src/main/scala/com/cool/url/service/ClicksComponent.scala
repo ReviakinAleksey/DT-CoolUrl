@@ -2,7 +2,7 @@ package com.cool.url.service
 
 import java.sql.Timestamp
 
-import scala.slick.lifted.ProvenShape
+import scala.slick.lifted.{ForeignKeyQuery, Index, ProvenShape}
 
 object ClicksComponent{
   private val LINK_CODE_CONSTRAINT = "fk_clicks_to_link"
@@ -19,19 +19,23 @@ trait ClicksComponent {
   case class Click(linkCode: LinkCode, date: Timestamp, referer: String, remoteIp: String)
 
   class Clicks(tag: Tag) extends Table[Click](tag, connector.schema, "clicks") {
-    def linkCode = column[LinkCode]("link_code")
 
-    def date = column[Timestamp]("date")
+    def linkCode:Column[LinkCode] = column[LinkCode]("link_code")
 
-    def referer = column[String]("referer")
+    def date:Column[Timestamp] = column[Timestamp]("date")
 
-    def remote_ip = column[String]("remote_ip")
+    def referer:Column[String] = column[String]("referer")
 
-    override def * : ProvenShape[Click] = (linkCode, date, referer, remote_ip) <>(Click.tupled, Click.unapply)
+    def remoteIp:Column[String] = column[String]("remote_ip")
 
-    def link = foreignKey(ClicksComponent.LINK_CODE_CONSTRAINT, linkCode, links)(_.code, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    override def * : ProvenShape[Click] = (linkCode, date, referer, remoteIp) <>(Click.tupled, Click.unapply)
 
-    def linkCodeIndex = index("link_code_index", linkCode)
+    def link:ForeignKeyQuery[Links, Link] =
+      foreignKey(ClicksComponent.LINK_CODE_CONSTRAINT, linkCode, links)(_.code,
+        onUpdate = ForeignKeyAction.Restrict,
+        onDelete = ForeignKeyAction.Cascade)
+
+    def linkCodeIndex:Index = index("link_code_index", linkCode)
   }
 
   object clicks extends TableQuery(new Clicks(_)) with PaginationExtension[Clicks] {
@@ -51,7 +55,7 @@ trait ClicksComponent {
       this.filter(_.linkCode === code).withPaging(paging)
     }
 
-    def deleteByCode(code: LinkCode)(implicit session: Session) = {
+    def deleteByCode(code: LinkCode)(implicit session: Session):Int = {
       this.filter(_.linkCode === code).delete
     }
   }

@@ -1,6 +1,6 @@
 package com.cool.url.service
 
-import scala.slick.lifted.ProvenShape
+import scala.slick.lifted.{Index, ProvenShape}
 
 
 trait UsersComponent {
@@ -14,14 +14,14 @@ trait UsersComponent {
   case class User(id: Long, token: UserToken)
 
   class Users(tag: Tag) extends Table[User](tag, connector.schema, "users") {
-    def id = column[Long]("id")
+    def id: Column[Long] = column[Long]("id")
 
-    def token = column[UserToken]("token", O.PrimaryKey)
+    def token: Column[UserToken] = column[UserToken]("token", O.PrimaryKey)
 
     override def * : ProvenShape[User] = (id, token) <>(User.tupled, User.unapply)
 
 
-    def tokenIndex = index("idx_user_token", token, unique = true)
+    def tokenIndex:Index = index("idx_user_token", token, unique = true)
   }
 
 

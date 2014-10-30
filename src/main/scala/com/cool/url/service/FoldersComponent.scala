@@ -1,6 +1,6 @@
 package com.cool.url.service
 
-import scala.slick.lifted.ProvenShape
+import scala.slick.lifted.{ForeignKeyQuery, Index, ProvenShape}
 
 
 object  FoldersComponent {
@@ -21,20 +21,24 @@ trait FoldersComponent {
   case class Folder(id: FolderId, token: UserToken, title: String)
 
   class Folders(tag: Tag) extends Table[Folder](tag, connector.schema, "folders") {
-    def id = column[FolderId]("id", O.PrimaryKey, O.AutoInc)
 
-    def token = column[UserToken]("user_token")
+    def id:Column[FolderId] = column[FolderId]("id", O.PrimaryKey, O.AutoInc)
 
-    def title = column[String]("title")
+    def token: Column[UserToken] = column[UserToken]("user_token")
+
+    def title: Column[String] = column[String]("title")
 
     override def * : ProvenShape[Folder] = (id, token, title) <>(Folder.tupled, Folder.unapply)
 
-    def user = foreignKey(FoldersComponent.USER_CODE_CONSTRAINT, token, users)(_.token, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def user: ForeignKeyQuery[Users, User] =
+      foreignKey(FoldersComponent.USER_CODE_CONSTRAINT, token, users)(_.token,
+        onUpdate = ForeignKeyAction.Restrict,
+        onDelete = ForeignKeyAction.Cascade)
 
 
-    def id_to_token_index = index(FoldersComponent.FOLDER_TO_USER_CODE_INDEX, (id, token), unique = true)
+    def idToTokenIndex:Index = index(FoldersComponent.FOLDER_TO_USER_CODE_INDEX, (id, token), unique = true)
 
-    def unique_folder_name_index = index(FoldersComponent.FOLDER_TITLE_TO_USER_CODE_INDEX, (token, title), unique = true)
+    def uniqueFolderNameIndex: Index = index(FoldersComponent.FOLDER_TITLE_TO_USER_CODE_INDEX, (token, title), unique = true)
 
   }
 
@@ -45,8 +49,10 @@ trait FoldersComponent {
         val id = this.map(folder => (folder.token, folder.title)).returning(this.map(_.id)).insert((token, title))
         Folder(id, token, title)
       } catch {
-        case connector.UNIQUE_VIOLATION(FoldersComponent.USER_CODE_CONSTRAINT) => throw UserTokenUnknown(token, ValidationException.FORBIDDEN)
-        case connector.UNIQUE_VIOLATION(FoldersComponent.FOLDER_TITLE_TO_USER_CODE_INDEX) => throw FolderAlreadyExists(title, ValidationException.INTERNAL_ERROR)
+        case connector.UNIQUE_VIOLATION(FoldersComponent.USER_CODE_CONSTRAINT) =>
+          throw UserTokenUnknown(token, ValidationException.FORBIDDEN)
+        case connector.UNIQUE_VIOLATION(FoldersComponent.FOLDER_TITLE_TO_USER_CODE_INDEX) =>
+          throw FolderAlreadyExists(title, ValidationException.INTERNAL_ERROR)
       }
     }
 
@@ -61,7 +67,7 @@ trait FoldersComponent {
     }
 
 
-    def deleteByToken(token: UserToken)(implicit session: Session) = {
+    def deleteByToken(token: UserToken)(implicit session: Session):Int = {
       this.filter(_.token === token).delete
     }
   }

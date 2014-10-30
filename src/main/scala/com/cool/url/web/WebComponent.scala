@@ -16,6 +16,7 @@ import io.netty.handler.codec.http.{DefaultFullHttpResponse, HttpResponseStatus,
 import unfiltered.directives.Directives._
 import unfiltered.directives.Result.{Failure, Success}
 import unfiltered.directives._
+import unfiltered.directives.data.Requiring
 import unfiltered.netty.ExceptionHandler
 import unfiltered.netty.cycle.{DeferredIntent, DeferralExecutor, Plan, ThreadPool}
 import unfiltered.request._
@@ -50,7 +51,7 @@ trait WebPlan extends StrictLogging {
       self: ChannelInboundHandler =>
 
 
-      def onException(ctx: ChannelHandlerContext, t: Throwable) = {
+      def onException(ctx: ChannelHandlerContext, t: Throwable):Unit = {
 
         val responseBuilder: ExceptionResponseBuilder = t match {
           case ve: ValidationException[_] =>
@@ -86,7 +87,7 @@ trait WebPlan extends StrictLogging {
     }
 
 
-    def apply(intentIn: Plan.Intent) = new WebPlanned(intentIn)
+    def apply(intentIn: Plan.Intent):Plan = new WebPlanned(intentIn)
   }
 
 
@@ -96,7 +97,7 @@ trait WebPlan extends StrictLogging {
     }
   }
 
-  def standardResponse[T](content: T) = JsContent ~> ResponseJsonContent(content)
+  def standardResponse[T](content: T):ResponseFunction[Any] = JsContent ~> ResponseJsonContent(content)
 
 }
 
@@ -121,7 +122,7 @@ trait UnfilteredWebComponent extends WebComponent with WebPlan {
       (name, value) => JsContent ~> BadRequest ~> ResponseJsonContent(ValidationResponse("parameter type expected to by Int", List(name, value)))
     }
 
-    implicit def required[T] = data.Requiring[T].fail(name => {
+    implicit def required[T]: Requiring[T, ResponseFunction[Any]] = data.Requiring[T].fail(name => {
       JsContent ~> BadRequest ~> ResponseJsonContent(ValidationResponse("parameter is missing", List(name)))
     })
 
