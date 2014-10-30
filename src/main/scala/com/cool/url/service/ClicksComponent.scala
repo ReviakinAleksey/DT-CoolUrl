@@ -40,6 +40,7 @@ trait ClicksComponent {
 
     def addClickForCode(code: LinkCode, date: Timestamp, referer: String, remoteIp: String)(implicit session: Session): Click = {
       UrlMalformed.validate(referer, "click.referer", ValidationException.INTERNAL_ERROR)
+      IpInvalid.validate(remoteIp, "click.remoteIp", ValidationException.INTERNAL_ERROR)
       try {
         val click = Click(code, date, referer, remoteIp)
         this += click

@@ -25,6 +25,7 @@ object Dependencies {
   val unfilteredNetty = "net.databinder" %% "unfiltered-netty-server" % "0.8.2"
   val unfilteredDirectives = "net.databinder" %% "unfiltered-directives" % "0.8.2"
   val postgresql = "org.postgresql" % "postgresql" % "9.3-1102-jdbc41"
+  val guava =  "com.google.guava" % "guava" % "15.0"
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 }
 
@@ -43,6 +44,7 @@ object CoolUrl extends Build {
     unfilteredNetty,
     unfilteredDirectives,
     postgresql,
+    guava,
     scalatest
   )
 

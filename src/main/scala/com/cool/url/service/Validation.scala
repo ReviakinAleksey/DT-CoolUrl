@@ -2,7 +2,9 @@ package com.cool.url.service
 
 import java.net.URL
 
+import com.google.common.net.InetAddresses
 import io.netty.handler.codec.http.HttpResponseStatus
+
 import scala.util.{Failure, Success, Try}
 
 
@@ -58,11 +60,24 @@ case class FolderAlreadyExists(title: String, status: ValidationException.Status
 
 case class UrlMalformed(url: String, path: String, status: ValidationException.Status) extends ValidationException[List[String]] {
   val messageCode = "provided.url.malformed"
-  val parameters = List(url,path)
+  val parameters = List(url, path)
 }
 
 object UrlMalformed {
   def validate(url: String, path: String, status: ValidationException.Status): Unit = {
     Try(new URL(url).toURI).transform(Success(_), _ => Failure(UrlMalformed(url, path, status))).get
+  }
+}
+
+case class IpInvalid(ip: String, path: String, status: ValidationException.Status) extends ValidationException[List[String]] {
+  val messageCode = "provided.ip.invalid"
+  val parameters = List(ip, path)
+}
+
+object IpInvalid {
+  def validate(ip: String, path: String, status: ValidationException.Status): Unit = {
+    if (!InetAddresses.isInetAddress(ip)) {
+      throw IpInvalid(ip, path, status)
+    }
   }
 }
