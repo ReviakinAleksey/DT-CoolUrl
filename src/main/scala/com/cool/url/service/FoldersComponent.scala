@@ -1,6 +1,7 @@
 package com.cool.url.service
 
 import scala.slick.lifted.{ForeignKeyQuery, Index, ProvenShape}
+import ParametersValidation._
 
 
 object  FoldersComponent {
@@ -44,14 +45,18 @@ trait FoldersComponent {
   object folders extends TableQuery(new Folders(_)) with PaginationExtension[Folders] {
 
     def createForToken(token: UserToken, title: String)(implicit session: Session): Folder = {
-      try {
-        val id = this.map(folder => (folder.token, folder.title)).returning(this.map(_.id)).insert((token, title))
-        Folder(id, token, title)
-      } catch {
-        case connector.UNIQUE_VIOLATION(FoldersComponent.USER_CODE_CONSTRAINT) =>
-          throw UserTokenUnknown(token, ValidationException.FORBIDDEN)
-        case connector.UNIQUE_VIOLATION(FoldersComponent.FOLDER_TITLE_TO_USER_CODE_INDEX) =>
-          throw FolderAlreadyExists(title, ValidationException.INTERNAL_ERROR)
+      for {
+        _ <- title validateAs "folder.title" ensure (beNonEmpty and beTrimmed)
+      } yield {
+        try {
+          val id = this.map(folder => (folder.token, folder.title)).returning(this.map(_.id)).insert((token, title))
+          Folder(id, token, title)
+        } catch {
+          case connector.UNIQUE_VIOLATION(FoldersComponent.USER_CODE_CONSTRAINT) =>
+            throw UserTokenUnknown(token, ValidationException.FORBIDDEN)
+          case connector.UNIQUE_VIOLATION(FoldersComponent.FOLDER_TITLE_TO_USER_CODE_INDEX) =>
+            throw FolderAlreadyExists(title, ValidationException.INTERNAL_ERROR)
+        }
       }
     }
 
