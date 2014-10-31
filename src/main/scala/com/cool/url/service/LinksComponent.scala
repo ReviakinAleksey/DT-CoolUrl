@@ -2,6 +2,7 @@ package com.cool.url.service
 
 
 import scala.slick.lifted.{Index, ForeignKeyQuery, ProvenShape}
+import ParametersValidation._
 
 object LinksComponent{
   private val USER_CODE_CONSTRAINT = "fK_links_to_user"
@@ -56,25 +57,33 @@ trait LinksComponent {
 
 
     def create(token: UserToken, url: String, code: Option[LinkCode], folderId: Option[FolderId])(implicit session: Session): Link = {
-      UrlMalformed.validate(url, "link.code", ValidationException.INTERNAL_ERROR)
-      try {
-        val dbCode: String = code match {
-          case Some(enteredCode) =>
-            (this returning this.map(_.code)) += Link(enteredCode, token, url, folderId)
-          case _ =>
-            (this.map(l => (l.token, l.url, l.folderId)) returning this.map(_.code)).insert(token, url, folderId)
-        }
-        Link(dbCode, token, url, folderId)
-      } catch {
-        case connector.UNIQUE_VIOLATION(constraint) =>
-          (constraint, folderId, code) match {
-            case (LinksComponent.USER_CODE_CONSTRAINT, _, _) => throw UserTokenUnknown(token, ValidationException.FORBIDDEN)
-            case (LinksComponent.FOLDER_ID_CONSTRAINT, Some(folder), _) => throw FolderIsNotExists(folder, ValidationException.INTERNAL_ERROR)
-            case (_, _, Some(requestedCode)) => throw LinkCodeIsAlreadyOccupied(requestedCode, ValidationException.INTERNAL_ERROR)
-            case (_, _, None) =>
-              //Race conditions, re-request new code
-              create(token, url, code, folderId)
+
+      for{
+        _ <- url validateAs "url" ensure beURL
+      } yield {
+        try {
+          val dbCode: String = code match {
+            case Some(enteredCode) =>
+              for{
+                _ <- enteredCode validateAs "link.code" ensure (beNonEmpty and beTrimmed and beValidPath)
+              } yield {
+                (this returning this.map(_.code)) += Link(enteredCode, token, url, folderId)
+              }
+            case _ =>
+              (this.map(l => (l.token, l.url, l.folderId)) returning this.map(_.code)).insert(token, url, folderId)
           }
+          Link(dbCode, token, url, folderId)
+        } catch {
+          case connector.UNIQUE_VIOLATION(constraint) =>
+            (constraint, folderId, code) match {
+              case (LinksComponent.USER_CODE_CONSTRAINT, _, _) => throw UserTokenUnknown(token, ValidationException.FORBIDDEN)
+              case (LinksComponent.FOLDER_ID_CONSTRAINT, Some(folder), _) => throw FolderIsNotExists(folder, ValidationException.INTERNAL_ERROR)
+              case (_, _, Some(requestedCode)) => throw LinkCodeIsAlreadyOccupied(requestedCode, ValidationException.INTERNAL_ERROR)
+              case (_, _, None) =>
+                //Race conditions, re-request new code
+                create(token, url, code, folderId)
+            }
+        }
       }
     }
 

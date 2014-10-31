@@ -68,10 +68,20 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
           "fail to create link with invalid url" in {
             val token = tokensToUserId.keys.headOption.get
             val url = "dsdfsdsdff"
-            val urlMalformed = the[UrlMalformed] thrownBy {
+            url mustBeReportedWith {
               links.create(token, url, None, None)
             }
-            urlMalformed.url should be(url)
+          }
+          Map("" -> "empty code", " sdasda  " -> "code that contains space", "%^%$^@#$@#" -> "code has illegal character").
+          foreach{
+            case (codeValue, name) =>
+              s"fail to create link with $name" in {
+                val token = tokensToUserId.keys.headOption.get
+                val url = "http://google.com"
+                codeValue mustBeReportedWith {
+                  links.create(token, url, Some(codeValue), None)
+                }
+              }
           }
           "allow to create links with auto generated tokens" in {
             createLinksWithAutoCodeForUsers.foreach(_.code.length should be > 0)

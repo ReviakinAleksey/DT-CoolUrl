@@ -50,20 +50,18 @@ class ClicksComponentSpec extends BaseSpec with ClicksComponentFixture with Befo
             val timestamp = new Timestamp(System.currentTimeMillis)
             val remoteIp = s"127.0.0.30"
             val code = codeToLink.keys.head
-            val urlMalformed = the[UrlMalformed] thrownBy {
+            referer mustBeReportedWith {
               clicks.addClickForCode(code, timestamp, referer, remoteIp)
             }
-            urlMalformed.url should be(referer)
           }
           "fail to create click with invalid IP" in {
             val referer = "http://ya.ru/index"
             val timestamp = new Timestamp(System.currentTimeMillis)
             val remoteIp = s"13423"
             val code = codeToLink.keys.head
-            val ipInvalid = the[IpInvalid] thrownBy {
+            remoteIp mustBeReportedWith {
               clicks.addClickForCode(code, timestamp, referer, remoteIp)
             }
-            ipInvalid.ip should be(remoteIp)
           }
           "allow to create clicks with proper code" in {
             codeToLink.keys.zipWithIndex.foreach({

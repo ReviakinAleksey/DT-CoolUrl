@@ -3,6 +3,7 @@ package com.cool.url.service
 import java.sql.Timestamp
 
 import scala.slick.lifted.{ForeignKeyQuery, Index, ProvenShape}
+import ParametersValidation._
 
 object ClicksComponent{
   private val LINK_CODE_CONSTRAINT = "fk_clicks_to_link"
@@ -39,15 +40,18 @@ trait ClicksComponent {
   object clicks extends TableQuery(new Clicks(_)) with PaginationExtension[Clicks] {
 
     def addClickForCode(code: LinkCode, date: Timestamp, referer: String, remoteIp: String)(implicit session: Session): Click = {
-      UrlMalformed.validate(referer, "click.referer", ValidationException.INTERNAL_ERROR)
-      IpInvalid.validate(remoteIp, "click.remoteIp", ValidationException.INTERNAL_ERROR)
-      try {
-        val click = Click(code, date, referer, remoteIp)
-        this += click
-        click
-      } catch {
-        case connector.UNIQUE_VIOLATION(ClicksComponent.LINK_CODE_CONSTRAINT) =>
-          throw LinkDoesNotExists(code, ValidationException.NOT_FOUND)
+      for{
+        _ <- referer validateAs "referer" ensure beURL
+        _ <- remoteIp validateAs "remoteIp" ensure beIP
+      } yield {
+        try {
+          val click = Click(code, date, referer, remoteIp)
+          this += click
+          click
+        } catch {
+          case connector.UNIQUE_VIOLATION(ClicksComponent.LINK_CODE_CONSTRAINT) =>
+            throw LinkDoesNotExists(code, ValidationException.NOT_FOUND)
+        }
       }
     }
 
