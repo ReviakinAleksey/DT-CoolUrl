@@ -12,7 +12,7 @@ object LinksComponent {
   private val LINK_CODE_MAX_LENGTH = 128
   private val LINK_URL_MAX_LENGTH = 2048
 
-  val linkCodeIsValid = beNonEmpty and beTrimmed and haLengthLE(LinksComponent.LINK_CODE_MAX_LENGTH) and beValidPath
+  val linkCodeIsValid = beNonEmpty and beTrimmed and hasLengthLE(LinksComponent.LINK_CODE_MAX_LENGTH) and beValidPath
 }
 
 
@@ -64,7 +64,7 @@ trait LinksComponent {
 
       for {
         _ <- token validateAs "link.token" ensure UsersComponent.beVaildToken
-        _ <- url validateAs "link.url" ensure (haLengthLE(LinksComponent.LINK_URL_MAX_LENGTH) and beURL)
+        _ <- url validateAs "link.url" ensure (hasLengthLE(LinksComponent.LINK_URL_MAX_LENGTH) and beURL)
       } yield {
         try {
           val dbCode: String = code match {

@@ -6,7 +6,7 @@ import ParametersValidation._
 object UsersComponent {
   private val TOKEN_COLUMN_LENGTH = 36
 
-  val beVaildToken = haLengthEQ(TOKEN_COLUMN_LENGTH)
+  val beVaildToken = hasLengthEQ(TOKEN_COLUMN_LENGTH)
 }
 
 
