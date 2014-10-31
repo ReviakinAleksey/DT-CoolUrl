@@ -33,12 +33,10 @@ trait LinksComponent {
     def linkCode: Column[LinkCode] = column[LinkCode]("link_code", O.Length(LinksComponent.LINK_CODE_MAX_LENGTH, true))
   }
 
-  class Links(tag: Tag) extends Table[Link](tag, connector.schema, "links") with LinkedToUser{
+  class Links(tag: Tag) extends Table[Link](tag, connector.schema, "links") with LinkedToUser with LinkedWithFolder{
     def code:Column[LinkCode] = column[LinkCode]("code", O.PrimaryKey,  O.Length(LinksComponent.LINK_CODE_MAX_LENGTH, true))
 
     def url:Column[String] = column[String]("url")
-
-    def folderId:Column[Option[FolderId]] = column[Option[FolderId]]("id_folder")
 
     override def * : ProvenShape[Link] = (code, token, url, folderId) <>(Link.tupled, Link.unapply)
 

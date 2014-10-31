@@ -42,6 +42,11 @@ trait FoldersComponent {
     def folderIndex: Index = index("idx_folders_token", token)
   }
 
+  trait LinkedWithFolder {
+    self: Table[_] =>
+    def folderId:Column[Option[FolderId]] = column[Option[FolderId]]("id_folder")
+  }
+
   object folders extends TableQuery(new Folders(_)) with PaginationExtension[Folders] {
 
     def createForToken(token: UserToken, title: String)(implicit session: Session): Folder = {
