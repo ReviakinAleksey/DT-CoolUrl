@@ -6,10 +6,11 @@ import com.cool.url.service
 import scala.slick.lifted.{Index, ForeignKeyQuery, ProvenShape}
 import ParametersValidation._
 
-object LinksComponent{
+object LinksComponent {
   private val USER_CODE_CONSTRAINT = "fK_links_to_user"
   private val FOLDER_ID_CONSTRAINT = "fk_links_to_folder"
   private val LINK_CODE_MAX_LENGTH = 128
+  private val LINK_URL_MAX_LENGTH = 2048
 
   val linkCodeIsValid = beNonEmpty and beTrimmed and haLengthLE(LinksComponent.LINK_CODE_MAX_LENGTH) and beValidPath
 }
@@ -33,10 +34,10 @@ trait LinksComponent {
     def linkCode: Column[LinkCode] = column[LinkCode]("link_code", O.Length(LinksComponent.LINK_CODE_MAX_LENGTH, true))
   }
 
-  class Links(tag: Tag) extends Table[Link](tag, connector.schema, "links") with LinkedToUser with LinkedWithFolder{
-    def code:Column[LinkCode] = column[LinkCode]("code", O.PrimaryKey,  O.Length(LinksComponent.LINK_CODE_MAX_LENGTH, true))
+  class Links(tag: Tag) extends Table[Link](tag, connector.schema, "links") with LinkedToUser with LinkedWithFolder {
+    def code: Column[LinkCode] = column[LinkCode]("code", O.PrimaryKey, O.Length(LinksComponent.LINK_CODE_MAX_LENGTH, true))
 
-    def url:Column[String] = column[String]("url")
+    def url: Column[String] = column[String]("url", O.Length(LinksComponent.LINK_URL_MAX_LENGTH, true))
 
     override def * : ProvenShape[Link] = (code, token, url, folderId) <>(Link.tupled, Link.unapply)
 
@@ -45,7 +46,7 @@ trait LinksComponent {
         onUpdate = ForeignKeyAction.Restrict,
         onDelete = ForeignKeyAction.Cascade)
 
-    def folder:ForeignKeyQuery[Folders, Folder] =
+    def folder: ForeignKeyQuery[Folders, Folder] =
       foreignKey(LinksComponent.FOLDER_ID_CONSTRAINT, (folderId, token), folders)(folder => (folder.id, folder.token),
         onUpdate = ForeignKeyAction.Restrict,
         onDelete = ForeignKeyAction.Cascade)
@@ -61,14 +62,14 @@ trait LinksComponent {
 
     def create(token: UserToken, url: String, code: Option[LinkCode], folderId: Option[FolderId])(implicit session: Session): Link = {
 
-      for{
-        _ <- token validateAs  "link.token" ensure UsersComponent.beVaildToken
-        _ <- url validateAs "link.url" ensure beURL
+      for {
+        _ <- token validateAs "link.token" ensure UsersComponent.beVaildToken
+        _ <- url validateAs "link.url" ensure (haLengthLE(LinksComponent.LINK_URL_MAX_LENGTH) and beURL)
       } yield {
         try {
           val dbCode: String = code match {
             case Some(enteredCode) =>
-              for{
+              for {
                 _ <- enteredCode validateAs "link.code" ensure LinksComponent.linkCodeIsValid
               } yield {
                 (this returning this.map(_.code)) += Link(enteredCode, token, url, folderId)
@@ -97,12 +98,12 @@ trait LinksComponent {
     def linkByCodeAndToken(token: UserToken, code: LinkCode)(implicit session: Session): Link =
       this.filter(_.code === code).filter(_.token === token).firstOption.getOrElse(throw LinkDoesNotExists(code, ValidationException.FORBIDDEN))
 
-    def linksByToken(token: UserToken, paging: Option[Paging] = None)(implicit session: Session):PagingResult[Link] = {
+    def linksByToken(token: UserToken, paging: Option[Paging] = None)(implicit session: Session): PagingResult[Link] = {
       this.filter(_.token === token).withPaging(paging)
     }
 
 
-    def linksByFolder(folderId: FolderId, paging: Option[Paging] = None)(implicit session: Session):PagingResult[Link] = {
+    def linksByFolder(folderId: FolderId, paging: Option[Paging] = None)(implicit session: Session): PagingResult[Link] = {
       this.filter(_.folderId === folderId).withPaging(paging)
     }
 

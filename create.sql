@@ -1,6 +1,6 @@
 create table "production"."users" ("id" BIGINT NOT NULL,"token" CHAR(36) NOT NULL PRIMARY KEY);
 create unique index "idx_users_id" on "production"."users" ("id");
-create table "production"."links" ("code" VARCHAR(128) NOT NULL PRIMARY KEY,"user_token" CHAR(36) NOT NULL,"url" VARCHAR(254) NOT NULL,"id_folder" BIGINT);
+create table "production"."links" ("code" VARCHAR(128) NOT NULL PRIMARY KEY,"user_token" CHAR(36) NOT NULL,"url" VARCHAR(2048) NOT NULL,"id_folder" BIGINT);
 create index "idx_links_folder" on "production"."links" ("id_folder");
 create index "idx_links_token" on "production"."links" ("user_token");
 create sequence production.link_code_seq;
