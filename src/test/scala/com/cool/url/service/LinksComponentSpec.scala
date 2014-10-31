@@ -59,32 +59,39 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
         "user is present" should {
           "fail to create link with invalid folder" in {
             val folderId = 10
-            val token = tokensToUserId.keys.headOption.get
+            val token = tokensToUserId.keys.head
             val folderIsNotExists = the[FolderIsNotExists] thrownBy {
               links.create(token, "http://google.com", None, Some(folderId))
             }
             folderIsNotExists.folderId should be(folderId)
           }
           "fail to create link with invalid url" in {
-            val token = tokensToUserId.keys.headOption.get
+            val token = tokensToUserId.keys.head
             val url = "dsdfsdsdff"
             url mustBeReportedWith {
               links.create(token, url, None, None)
             }
           }
           "fail to create link with long code" in {
-            val token = tokensToUserId.keys.headOption.get
+            val token = tokensToUserId.keys.head
             val url = "http://google.com"
             var code = "a" * (128+1)
             code mustBeReportedWith {
               links.create(token, url, Some(code), None)
             }
           }
+          "fail to create link with long token" in {
+            val token = tokensToUserId.keys.head * 2
+            val url = "http://google.com"
+            token mustBeReportedWith {
+              links.create(token, url, None, None)
+            }
+          }
           Map("" -> "empty code", " sdasda  " -> "code that contains space", "%^%$^@#$@#" -> "code has illegal character").
           foreach{
             case (codeValue, name) =>
               s"fail to create link with $name" in {
-                val token = tokensToUserId.keys.headOption.get
+                val token = tokensToUserId.keys.head
                 val url = "http://google.com"
                 codeValue mustBeReportedWith {
                   links.create(token, url, Some(codeValue), None)
@@ -106,7 +113,7 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
             })
           }
           "fail to create link with previously used code" in {
-            val token = tokensToUserId.keys.headOption.get
+            val token = tokensToUserId.keys.head
             val code = codeToLink.keys.head
             val codeOccupied = the[LinkCodeIsAlreadyOccupied] thrownBy {
               links.create(token, "http://google.com", Some(code), None)

@@ -46,6 +46,7 @@ trait FoldersComponent {
 
     def createForToken(token: UserToken, title: String)(implicit session: Session): Folder = {
       for {
+        _ <- token validateAs  "folder.token" ensure UsersComponent.beVaildToken
         _ <- title validateAs "folder.title" ensure (beNonEmpty and beTrimmed)
       } yield {
         try {

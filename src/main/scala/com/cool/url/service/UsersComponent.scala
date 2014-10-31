@@ -1,6 +1,13 @@
 package com.cool.url.service
 
 import scala.slick.lifted.{Index, ProvenShape}
+import ParametersValidation._
+
+object UsersComponent {
+  private val TOKEN_COLUMN_LENGTH = 36
+
+  val beVaildToken = haLengthEQ(TOKEN_COLUMN_LENGTH)
+}
 
 
 trait UsersComponent {
@@ -11,26 +18,24 @@ trait UsersComponent {
 
   type UserToken = String
 
-  private val TOKEN_COLUMN_LENGTH = 36
-
   case class User(id: Long, token: UserToken)
 
   class Users(tag: Tag) extends Table[User](tag, connector.schema, "users") {
     def id: Column[Long] = column[Long]("id")
 
-    def token: Column[UserToken] = column[UserToken]("token", O.PrimaryKey, O.Length(TOKEN_COLUMN_LENGTH, false))
+    def token: Column[UserToken] = column[UserToken]("token", O.PrimaryKey, O.Length(UsersComponent.TOKEN_COLUMN_LENGTH, false))
 
     override def * : ProvenShape[User] = (id, token) <>(User.tupled, User.unapply)
 
 
-    def userIdIndex:Index = index("idx_users_id", id, unique = true)
+    def userIdIndex: Index = index("idx_users_id", id, unique = true)
   }
 
 
   trait LinkedToUser {
     self: Table[_] =>
 
-    def token: Column[UserToken] = column[UserToken]("user_token", O.Length(TOKEN_COLUMN_LENGTH, false))
+    def token: Column[UserToken] = column[UserToken]("user_token", O.Length(UsersComponent.TOKEN_COLUMN_LENGTH, false))
   }
 
 
@@ -52,7 +57,6 @@ trait UsersComponent {
     def getByToken(token: UserToken)(implicit session: Session): Option[User] = this.filter(_.token === token).firstOption
 
   }
-
 
 
 }

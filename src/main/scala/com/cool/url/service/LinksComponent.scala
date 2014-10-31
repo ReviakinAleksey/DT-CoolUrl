@@ -1,6 +1,8 @@
 package com.cool.url.service
 
 
+import com.cool.url.service
+
 import scala.slick.lifted.{Index, ForeignKeyQuery, ProvenShape}
 import ParametersValidation._
 
@@ -62,6 +64,7 @@ trait LinksComponent {
     def create(token: UserToken, url: String, code: Option[LinkCode], folderId: Option[FolderId])(implicit session: Session): Link = {
 
       for{
+        _ <- token validateAs  "link.token" ensure UsersComponent.beVaildToken
         _ <- url validateAs "link.url" ensure beURL
       } yield {
         try {

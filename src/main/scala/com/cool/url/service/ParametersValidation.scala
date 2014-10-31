@@ -65,12 +65,21 @@ object ParametersValidation {
       }
   }
 
+  def haLengthEQ(length: Int):ValidValueTransformer[String, String] = new ValidValueTransformer[String, String] {
+    def transform(target: String): ValueContext[String] =
+      if (target.length == length) {
+        Right(target)
+      } else {
+        Left("must.have.valid.length")
+      }
+  }
+
   def haLengthLE(length: Int):ValidValueTransformer[String, String] = new ValidValueTransformer[String, String] {
     def transform(target: String): ValueContext[String] =
       if (target.length <= length) {
         Right(target)
       } else {
-        Left("must.be.non.empty")
+        Left("must.have.valid.length")
       }
   }
 
