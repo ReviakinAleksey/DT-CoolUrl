@@ -7,6 +7,7 @@ import ParametersValidation._
 object LinksComponent{
   private val USER_CODE_CONSTRAINT = "fK_links_to_user"
   private val FOLDER_ID_CONSTRAINT = "fk_links_to_folder"
+  private val LINK_CODE_MAX_LENGTH = 128
 }
 
 
@@ -25,11 +26,11 @@ trait LinksComponent {
 
   trait LinkedWithLink {
     self: Table[_] =>
-    def linkCode: Column[LinkCode] = column[LinkCode]("link_code")
+    def linkCode: Column[LinkCode] = column[LinkCode]("link_code", O.Length(LinksComponent.LINK_CODE_MAX_LENGTH, true))
   }
 
   class Links(tag: Tag) extends Table[Link](tag, connector.schema, "links") with LinkedToUser{
-    def code:Column[LinkCode] = column[LinkCode]("code", O.PrimaryKey)
+    def code:Column[LinkCode] = column[LinkCode]("code", O.PrimaryKey,  O.Length(LinksComponent.LINK_CODE_MAX_LENGTH, true))
 
     def url:Column[String] = column[String]("url")
 
@@ -65,7 +66,7 @@ trait LinksComponent {
           val dbCode: String = code match {
             case Some(enteredCode) =>
               for{
-                _ <- enteredCode validateAs "link.code" ensure (beNonEmpty and beTrimmed and beValidPath)
+                _ <- enteredCode validateAs "link.code" ensure (beNonEmpty and beTrimmed and haLengthLE(LinksComponent.LINK_CODE_MAX_LENGTH) and beValidPath)
               } yield {
                 (this returning this.map(_.code)) += Link(enteredCode, token, url, folderId)
               }

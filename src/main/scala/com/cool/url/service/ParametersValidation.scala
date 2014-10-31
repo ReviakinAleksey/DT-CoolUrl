@@ -65,6 +65,15 @@ object ParametersValidation {
       }
   }
 
+  def haLengthLE(length: Int) = new ValidValueTransformer[String, String] {
+    def transform(target: String): ValueContext[String] =
+      if (target.length <= length) {
+        Right(target)
+      } else {
+        Left("must.be.non.empty")
+      }
+  }
+
   val intValue = new ValidValueTransformer[String, Int] {
     def transform(target: String): ValueContext[Int] = {
       try {

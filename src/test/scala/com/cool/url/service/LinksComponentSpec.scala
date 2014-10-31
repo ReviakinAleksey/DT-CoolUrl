@@ -72,6 +72,14 @@ class LinksComponentSpec extends BaseSpec with LinksComponentFixture with Before
               links.create(token, url, None, None)
             }
           }
+          "fail to create link with long code" in {
+            val token = tokensToUserId.keys.headOption.get
+            val url = "http://google.com"
+            var code = "a" * (128+1)
+            code mustBeReportedWith {
+              links.create(token, url, Some(code), None)
+            }
+          }
           Map("" -> "empty code", " sdasda  " -> "code that contains space", "%^%$^@#$@#" -> "code has illegal character").
           foreach{
             case (codeValue, name) =>
