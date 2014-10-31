@@ -8,6 +8,8 @@ object LinksComponent{
   private val USER_CODE_CONSTRAINT = "fK_links_to_user"
   private val FOLDER_ID_CONSTRAINT = "fk_links_to_folder"
   private val LINK_CODE_MAX_LENGTH = 128
+
+  val linkCodeIsValid = beNonEmpty and beTrimmed and haLengthLE(LinksComponent.LINK_CODE_MAX_LENGTH) and beValidPath
 }
 
 
@@ -66,7 +68,7 @@ trait LinksComponent {
           val dbCode: String = code match {
             case Some(enteredCode) =>
               for{
-                _ <- enteredCode validateAs "link.code" ensure (beNonEmpty and beTrimmed and haLengthLE(LinksComponent.LINK_CODE_MAX_LENGTH) and beValidPath)
+                _ <- enteredCode validateAs "link.code" ensure LinksComponent.linkCodeIsValid
               } yield {
                 (this returning this.map(_.code)) += Link(enteredCode, token, url, folderId)
               }

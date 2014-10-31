@@ -63,6 +63,15 @@ class ClicksComponentSpec extends BaseSpec with ClicksComponentFixture with Befo
               clicks.addClickForCode(code, timestamp, referer, remoteIp)
             }
           }
+          "fail to create clicks with long code" in {
+            val code = codeToLink.keys.head * 128
+            val timestamp = new Timestamp(System.currentTimeMillis)
+            val referer = "http://ya.ru/page-ok"
+            val remoteIp = "127.0.0.100"
+            code mustBeReportedWith{
+              clicks.addClickForCode(code, timestamp, referer, remoteIp)
+            }
+          }
           "allow to create clicks with proper code" in {
             codeToLink.keys.zipWithIndex.foreach({
               case (code, index) =>

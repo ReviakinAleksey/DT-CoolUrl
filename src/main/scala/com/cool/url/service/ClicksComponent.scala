@@ -43,6 +43,7 @@ trait ClicksComponent {
       for{
         _ <- referer validateAs "click.referer" ensure beURL
         _ <- remoteIp validateAs "click.remoteIp" ensure beIP
+        _ <- code validateAs "click.code" ensure LinksComponent.linkCodeIsValid
       } yield {
         try {
           val click = Click(code, date, referer, remoteIp)
