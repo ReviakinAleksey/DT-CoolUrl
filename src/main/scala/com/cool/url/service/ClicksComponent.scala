@@ -41,8 +41,8 @@ trait ClicksComponent {
 
     def addClickForCode(code: LinkCode, date: Timestamp, referer: String, remoteIp: String)(implicit session: Session): Click = {
       for{
-        _ <- referer validateAs "referer" ensure beURL
-        _ <- remoteIp validateAs "remoteIp" ensure beIP
+        _ <- referer validateAs "click.referer" ensure beURL
+        _ <- remoteIp validateAs "click.remoteIp" ensure beIP
       } yield {
         try {
           val click = Click(code, date, referer, remoteIp)

@@ -59,7 +59,7 @@ trait LinksComponent {
     def create(token: UserToken, url: String, code: Option[LinkCode], folderId: Option[FolderId])(implicit session: Session): Link = {
 
       for{
-        _ <- url validateAs "url" ensure beURL
+        _ <- url validateAs "link.url" ensure beURL
       } yield {
         try {
           val dbCode: String = code match {
