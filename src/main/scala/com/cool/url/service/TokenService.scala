@@ -4,7 +4,7 @@ import java.nio.charset.Charset
 import java.util.UUID
 
 trait TokenServiceComponent {
-  val tokenService: TokenService
+  def tokenService: TokenService
 
   trait TokenService {
     def generate(id: Long): String

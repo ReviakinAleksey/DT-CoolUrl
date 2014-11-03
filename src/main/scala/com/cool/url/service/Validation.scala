@@ -7,9 +7,9 @@ import io.netty.handler.codec.http.HttpResponseStatus
 case class ValidationResponse[T]( messageCode: String,parameters: T )
 
 sealed trait ValidationException[T] extends Exception {
-  val status: ValidationException.Status
-  val messageCode: String
-  val parameters: T
+  def status: ValidationException.Status
+  def messageCode: String
+  def parameters: T
 
   def httpContent:ValidationResponse[T] = ValidationResponse[T](messageCode, parameters)
 }

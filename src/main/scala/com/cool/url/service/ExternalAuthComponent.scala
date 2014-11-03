@@ -5,7 +5,7 @@ import com.cool.url.config.ConfigProviderComponent
 trait ExternalAuthComponent {
   type AuthObject
 
-  val externalAuthService: ExternalAuthService
+  def externalAuthService: ExternalAuthService
 
   trait ExternalAuthService {
     def isAuthorized(target: AuthObject): Boolean

@@ -13,10 +13,10 @@ trait DbConnectorComponent {
   val connector: DbConnector
 
   trait DbConnector {
-    val db: Database
+    def db: Database
     val driver: JdbcProfile
-    val UNIQUE_VIOLATION: ConstraintViolation
-    val schema: Option[String]
+    def UNIQUE_VIOLATION: ConstraintViolation
+    def schema: Option[String]
 
     def shutdown(): Unit
   }

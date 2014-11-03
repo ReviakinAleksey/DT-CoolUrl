@@ -28,7 +28,7 @@ import scala.io.Source
 
 
 trait WebComponent {
-  val webService: WebService
+  def webService: WebService
 
   trait WebService {
     def start(): Unit

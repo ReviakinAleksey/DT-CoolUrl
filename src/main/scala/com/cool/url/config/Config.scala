@@ -5,21 +5,21 @@ import java.io.File
 import com.cool.url.service.JacksonComponent
 
 trait DbConfig {
-  val host: String
-  val base: String
-  val user: String
-  val password: String
-  val schema: String
+  def host: String
+  def base: String
+  def user: String
+  def password: String
+  def schema: String
 }
 
 trait ConfigProvider {
-  val db: DbConfig
-  val httpPort: Int
-  val backendSecret: String
+  def db: DbConfig
+  def httpPort: Int
+  def backendSecret: String
 }
 
 trait ConfigProviderComponent {
-  val config: ConfigProvider
+  def config: ConfigProvider
 
 }
 

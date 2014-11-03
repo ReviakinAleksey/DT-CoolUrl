@@ -11,7 +11,8 @@ import com.typesafe.scalalogging.StrictLogging
 trait DaoComponent {
   self: ExternalAuthComponent
     with ServiceComponent =>
-  val daoService: DaoService
+
+  def daoService: DaoService
 
   trait DaoService {
     def authorizeAndGetToken(target: AuthObject, userId: Long): UserToken
