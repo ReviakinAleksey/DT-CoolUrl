@@ -4,6 +4,7 @@ import java.net.{InetAddress, URI, URL}
 
 import com.google.common.net.{UrlEscapers, InetAddresses}
 
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 object ParametersValidation {
@@ -100,7 +101,7 @@ object ParametersValidation {
       try {
         Right(new URL(target).toURI)
       } catch {
-        case _: Throwable => Left("must.be.url")
+        case NonFatal(_) => Left("must.be.url")
       }
     }
   }
@@ -110,7 +111,7 @@ object ParametersValidation {
       try {
         Right(InetAddresses.forString(target))
       } catch {
-        case _: Throwable => Left("must.be.url")
+        case NonFatal(_) => Left("must.be.url")
       }
     }
   }
